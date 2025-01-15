@@ -1,8 +1,12 @@
-import { Text, View } from "react-native";
-import Auth from "@/components/Auth";
-import { supabase } from "@/lib/supabase";
-import { useEffect, useState } from "react";
-import { Session } from "@supabase/supabase-js";
+import { Text, View } from 'react-native';
+import Auth from '@/components/Auth';
+import { supabase } from '@/lib/supabase';
+import { useEffect, useState } from 'react';
+import { Session } from '@supabase/supabase-js';
+import { VStack } from '@/components/ui/vstack';
+import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
+import { AddIcon } from '@/components/ui/icon';
+import DashBoard from '../components/DashBoard';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -18,8 +22,21 @@ export default function Index() {
   }, []);
 
   return (
-    <View>
-      {session && session.user ? <Text>こんにちは</Text> : <Auth />}
+    <View className="justify-center items-center h-full">
+      {session && session.user ? (
+        <VStack>
+          <Text>Welcome {session.user.email}</Text>
+          <Button onPress={() => supabase.auth.signOut()}>
+            <ButtonText>Sign Out</ButtonText>
+            <ButtonIcon>
+              <AddIcon />
+            </ButtonIcon>
+          </Button>
+          <DashBoard />
+        </VStack>
+      ) : (
+        <Auth />
+      )}
     </View>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, View, AppState } from 'react-native';
 import { Button, ButtonText } from '@/components/ui/button';
-import { Input, InputField } from '@/components/ui/input';
+import { Input, InputField, InputSlot, InputIcon } from '@/components/ui/input';
 import {
   FormControl,
   FormControlLabel,
@@ -9,6 +9,8 @@ import {
 } from '@/components/ui/form-control';
 import { VStack } from '@/components/ui/vstack';
 import { supabase } from '../lib/supabase';
+import { EyeIcon, EyeOffIcon } from '@/components/ui/icon';
+import { Heading } from '@/components/ui/heading';
 
 AppState.addEventListener('change', (state) => {
   if (state === 'active') {
@@ -52,9 +54,17 @@ export default function Auth() {
     setLoading(false);
   }
 
+  const [showPassword, setShowPassword] = React.useState(false);
+  const handleState = () => {
+    setShowPassword((showState) => {
+      return !showState;
+    });
+  };
+
   return (
-    <VStack className="w-full max-w-[300px] rounded-md border border-background-200 p-4 ">
-      <FormControl>
+    <VStack className="w-full max-w-[300px] rounded-md p-4">
+      <Heading className="mb-2">ログイン</Heading>
+      <FormControl className="mb-2">
         <FormControlLabel>
           <FormControlLabelText>メールアドレス</FormControlLabelText>
         </FormControlLabel>
@@ -70,20 +80,28 @@ export default function Auth() {
         <FormControlLabel>
           <FormControlLabelText>パスワード</FormControlLabelText>
         </FormControlLabel>
-        <Input className="mb-2">
+        <Input className="mb-12">
           <InputField
-            secureTextEntry
+            type={showPassword ? 'text' : 'password'}
             placeholder="パスワードを入力"
             value={password}
             onChangeText={(text) => setPassword(text)}
           />
+          <InputSlot className="pr-3" onPress={handleState}>
+            <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
+          </InputSlot>
         </Input>
       </FormControl>
-      <Button className="mb-2" size="sm" onPress={() => signInWithEmail()} disabled={loading}>
-        <ButtonText>サインイン</ButtonText>
+      <Button
+        className="mb-2"
+        size="sm"
+        onPress={() => signInWithEmail()}
+        disabled={loading}
+      >
+        <ButtonText>ログイン</ButtonText>
       </Button>
       <Button size="sm" onPress={() => signUpWithEmail()} disabled={loading}>
-        <ButtonText>サインアップ</ButtonText>
+        <ButtonText>新規登録</ButtonText>
       </Button>
     </VStack>
   );
