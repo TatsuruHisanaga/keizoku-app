@@ -62,7 +62,7 @@ export default function Auth() {
   };
 
   return (
-    <VStack className="w-full max-w-[300px] rounded-md p-4">
+    <VStack className="w-full rounded-md p-4">
       <Heading className="mb-2">ログイン</Heading>
       <FormControl className="mb-2">
         <FormControlLabel>

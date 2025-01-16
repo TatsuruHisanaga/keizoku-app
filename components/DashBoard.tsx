@@ -37,23 +37,21 @@ export default function DashBoard() {
   }
 
   return (
-    <VStack>
+    <VStack className="w-full">
       <Heading>{formatDateRange()}</Heading>
       <Input
         variant="outline"
-        size="md"
+        size="lg"
         isDisabled={false}
         isInvalid={false}
         isReadOnly={false}
       >
         <InputField placeholder="新しい習慣を入力..." />
       </Input>
-      <Button size='sm'>
+      <Button size="lg">
         <ButtonIcon as={AddIcon} />
         <ButtonText>追加</ButtonText>
       </Button>
-
-      
     </VStack>
   );
 }
