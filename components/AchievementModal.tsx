@@ -12,7 +12,7 @@ import { Button, ButtonText } from '@/components/ui/button';
 import { useState } from 'react';
 import { Box } from '@/components/ui/box';
 import { Center } from '@/components/ui/center';
-import { Trophy } from 'lucide-react-native'
+import { Trophy } from 'lucide-react-native';
 
 interface AchievementModalProps {
   isOpen: boolean;
@@ -35,7 +35,7 @@ export default function AchievementModal({
         <ModalBackdrop />
         <ModalContent>
           <Box className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Trophy color="#ebb305"/>
+            <Trophy color="#ebb305" />
           </Box>
           <ModalHeader>
             <Box></Box>
@@ -45,10 +45,13 @@ export default function AchievementModal({
             <Box></Box>
           </ModalHeader>
           <ModalBody>
-            <Text size="sm" className="text-typography-500 text-center mb-4">
+            <Text size="sm" className="text-typography-500 text-center">
               「{habitName}」を{streak}日間継続できました！
             </Text>
           </ModalBody>
+          <Text className="text-center text-4xl font-bold text-yellow-500 mb-4">
+            {streak}日
+          </Text>
           <ModalFooter>
             <Box
               style={{
@@ -61,7 +64,7 @@ export default function AchievementModal({
                 onPress={() => {
                   setShowModal(false);
                 }}
-                className='w-full'
+                className="w-full"
               >
                 <ButtonText>続ける</ButtonText>
               </Button>
