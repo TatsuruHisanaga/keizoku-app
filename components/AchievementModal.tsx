@@ -12,6 +12,7 @@ import { Button, ButtonText } from '@/components/ui/button';
 import { useState } from 'react';
 import { Box } from '@/components/ui/box';
 import { Center } from '@/components/ui/center';
+import { Trophy } from 'lucide-react-native'
 
 interface AchievementModalProps {
   isOpen: boolean;
@@ -33,6 +34,9 @@ export default function AchievementModal({
       <Modal isOpen={isOpen} onClose={onClose} size="sm">
         <ModalBackdrop />
         <ModalContent>
+          <Box className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Trophy color="#ebb305"/>
+          </Box>
           <ModalHeader>
             <Box></Box>
             <Heading size="md" className="text-typography-950 mb-2">
@@ -57,7 +61,7 @@ export default function AchievementModal({
                 onPress={() => {
                   setShowModal(false);
                 }}
-                size='sm'
+                className='w-full'
               >
                 <ButtonText>続ける</ButtonText>
               </Button>
