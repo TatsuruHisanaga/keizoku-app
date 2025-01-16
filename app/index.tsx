@@ -1,4 +1,3 @@
-import { Text, View } from 'react-native';
 import Auth from '@/components/Auth';
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
@@ -7,6 +6,9 @@ import { VStack } from '@/components/ui/vstack';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { AddIcon } from '@/components/ui/icon';
 import DashBoard from '../components/DashBoard';
+import AchievementModal from '../components/AchievementModal';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -33,6 +35,9 @@ export default function Index() {
             </ButtonIcon>
           </Button>
           <DashBoard />
+          <AchievementModal isOpen={true} onClose={function (): void {
+            throw new Error('Function not implemented.');
+          } } streak={0} habitName={''} />
         </VStack>
       ) : (
         <Auth />

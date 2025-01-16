@@ -12,14 +12,6 @@ import { supabase } from '../lib/supabase';
 import { EyeIcon, EyeOffIcon } from '@/components/ui/icon';
 import { Heading } from '@/components/ui/heading';
 
-AppState.addEventListener('change', (state) => {
-  if (state === 'active') {
-    supabase.auth.startAutoRefresh();
-  } else {
-    supabase.auth.stopAutoRefresh();
-  }
-});
-
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -80,7 +72,7 @@ export default function Auth() {
         <FormControlLabel>
           <FormControlLabelText>パスワード</FormControlLabelText>
         </FormControlLabel>
-        <Input className="mb-12">
+        <Input className="mb-4">
           <InputField
             type={showPassword ? 'text' : 'password'}
             placeholder="パスワードを入力"
@@ -100,7 +92,8 @@ export default function Auth() {
       >
         <ButtonText>ログイン</ButtonText>
       </Button>
-      <Button size="sm" onPress={() => signUpWithEmail()} disabled={loading}>
+      <Heading className="my-2 color-gray-600" size="xs">ユーザー登録がお済みでない方はこちら</Heading>
+      <Button size="sm" onPress={() => signUpWithEmail()} variant='outline' disabled={loading}>
         <ButtonText>新規登録</ButtonText>
       </Button>
     </VStack>
