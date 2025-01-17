@@ -31,7 +31,6 @@ export function HabitItem({ habit, onToggle }: HabitItemProps) {
   const handleToggle = () => {
     onToggle(today)
     playSound()
-    console.log('toggle')
   }
 
   return (
