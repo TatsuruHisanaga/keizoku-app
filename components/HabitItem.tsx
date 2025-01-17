@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button'
 import { Heading } from './ui/heading'
 import { Box } from './ui/box'
 import { Text } from './ui/text'
+import { Audio } from 'expo-av'
+import { useEffect } from 'react'
 
 export interface HabitItemProps {
   habit: {
@@ -18,7 +20,19 @@ export interface HabitItemProps {
 export function HabitItem({ habit, onToggle }: HabitItemProps) {
   const today = new Date().toISOString().split('T')[0]
   const isCompleted = habit.completedDates.includes(today)
-      
+
+  const playSound = async () => {
+    const {sound} = await Audio.Sound.createAsync(
+      require('../assets/sounds/click.mp3'),
+      { shouldPlay: false }
+    );
+  }
+
+  const handleToggle = () => {
+    onToggle(today)
+    playSound()
+    console.log('toggle')
+  }
 
   return (
     <Box className="bg-white rounded-2xl shadow-sm p-4">
@@ -38,7 +52,7 @@ export function HabitItem({ habit, onToggle }: HabitItemProps) {
                 ? 'bg-green-50 border-green-200 text-green-600 hover:bg-green-100'
                 : 'hover:bg-gray-100'
             }`}
-            onPress={() => onToggle(today)}
+            onPress={() => handleToggle()}
           >
             <Check className="w-5 h-5" />
           </Button>
