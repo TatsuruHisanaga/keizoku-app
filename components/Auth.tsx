@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, View, AppState } from 'react-native';
+import { Alert } from 'react-native';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Input, InputField, InputSlot, InputIcon } from '@/components/ui/input';
 import {
@@ -11,6 +11,8 @@ import { VStack } from '@/components/ui/vstack';
 import { supabase } from '../lib/supabase';
 import { EyeIcon, EyeOffIcon } from '@/components/ui/icon';
 import { Heading } from '@/components/ui/heading';
+import { Text } from '@/components/ui/text';
+import { Center } from './ui/center';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -92,8 +94,16 @@ export default function Auth() {
       >
         <ButtonText>ログイン</ButtonText>
       </Button>
-      <Heading className="my-2 color-gray-600" size="xs">ユーザー登録がお済みでない方はこちら</Heading>
-      <Button size="sm" onPress={() => signUpWithEmail()} variant='outline' disabled={loading}>
+      <Center>
+        <Text>or</Text>
+      </Center>
+      <Button
+        className="mt-2"
+        size="sm"
+        onPress={() => signUpWithEmail()}
+        variant="outline"
+        disabled={loading}
+      >
         <ButtonText>新規登録</ButtonText>
       </Button>
     </VStack>
