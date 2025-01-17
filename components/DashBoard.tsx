@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Heading } from './ui/heading';
 import { HabitItem } from '@/components/HabitItem';
 import { Box } from './ui/box';
+import AchievementModal from '@/components/AchievementModal';
 
 export default function DashBoard() {
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
@@ -46,6 +47,16 @@ export default function DashBoard() {
   }[]>([]);
   const [newHabit, setNewHabit] = useState('');
 
+  const [achievementData, setAchievementData] = useState<{
+    isOpen: boolean
+    streak: number
+    habitName: string
+  }>({
+    isOpen: false,
+    streak: 0,
+    habitName: ''
+  })
+
   const addHabit = () => {
     if (newHabit.trim()) {
       setHabits([
@@ -59,6 +70,34 @@ export default function DashBoard() {
       ])
       setNewHabit('')
     }
+  }
+
+  const toggleComplete = (habitId: string, date: string) => {
+    setHabits(habits.map(habit => {
+      if (habit.id === habitId) {
+        const isCompleted = habit.completedDates.includes(date)
+        const completedDates = isCompleted
+          ? habit.completedDates.filter(d => d !== date)
+          : [...habit.completedDates, date]
+        
+        const streak = completedDates.length
+        
+        if (!isCompleted && streak > 0) {
+          setAchievementData({
+            isOpen: true,
+            streak,
+            habitName: habit.name
+          })
+        }
+        
+        return {
+          ...habit,
+          completedDates,
+          streak: completedDates.length
+        }
+      }
+      return habit
+    }))
   }
 
 
@@ -91,10 +130,17 @@ export default function DashBoard() {
               ...habit,
               totalDays: habit.completedDates.length
             }}
-            onToggle={(date) => true}
+            onToggle={(date) => toggleComplete(habit.id, date)}
           />
         ))}
       </Box>
+
+      <AchievementModal
+        isOpen={achievementData.isOpen}
+        onClose={() => setAchievementData(prev => ({ ...prev, isOpen: false }))}
+        streak={achievementData.streak}
+        habitName={achievementData.habitName}
+      />
 
     </VStack>
 
