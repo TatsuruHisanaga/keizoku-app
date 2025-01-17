@@ -54,9 +54,7 @@ export default function Index() {
     })} ${start.getDate()} - ${end.getDate()}`;
   };
 
-  const isToday = (date: Date) => {
-    return date.toDateString() === today.toDateString();
-  };
+
 
   const [habits, setHabits] = useState<
     {
