@@ -27,7 +27,6 @@ export default function AchievementModal({
   streak,
   habitName,
 }: AchievementModalProps) {
-  const [showModal, setShowModal] = useState<boolean>(isOpen);
 
   return (
     <Center>
@@ -61,9 +60,7 @@ export default function AchievementModal({
               }}
             >
               <Button
-                onPress={() => {
-                  setShowModal(false);
-                }}
+                onPress={onClose}
                 className="w-full"
               >
                 <ButtonText>続ける</ButtonText>
