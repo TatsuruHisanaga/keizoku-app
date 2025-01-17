@@ -9,7 +9,6 @@ import DashBoard from '../components/DashBoard';
 import AchievementModal from '../components/AchievementModal';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
-import { View } from 'react-native';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -25,7 +24,7 @@ export default function Index() {
   }, []);
 
   return (
-    <View className="justify-center h-full">
+    <Box className="justify-center h-full">
       {session && session.user ? (
         <VStack>
           <Text>Welcome {session.user.email}</Text>
@@ -43,6 +42,6 @@ export default function Index() {
       ) : (
         <Auth />
       )}
-    </View>
+    </Box>
   );
 }
