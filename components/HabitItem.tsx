@@ -22,7 +22,7 @@ export function HabitItem({ habit, onToggle }: HabitItemProps) {
   const isCompleted = habit.completedDates.includes(today)
 
   const playSound = async () => {
-    const {sound} = await Audio.Sound.createAsync(
+    await Audio.Sound.createAsync(
       require('../assets/sounds/click.mp3'),
       { shouldPlay: true }
     );
