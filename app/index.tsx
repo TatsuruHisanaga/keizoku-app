@@ -12,6 +12,7 @@ import { Heading } from '@/components/ui/heading';
 import { Input, InputField } from '@/components/ui/input';
 import { HabitItem } from '@/components/HabitItem';
 import { WeekView } from '@/components/WeekView';
+import { HStack } from '@/components/ui/hstack';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -53,8 +54,6 @@ export default function Index() {
       month: 'long',
     })} ${start.getDate()} - ${end.getDate()}`;
   };
-
-
 
   const [habits, setHabits] = useState<
     {
@@ -133,23 +132,28 @@ export default function Index() {
             </ButtonIcon>
           </Button>
           <Heading>{formatDateRange()}</Heading>
-          <Input
-            variant="outline"
-            size="lg"
-            isDisabled={false}
-            isInvalid={false}
-            isReadOnly={false}
+          <HStack
+            space="md"
           >
-            <InputField
-              placeholder="新しい習慣を入力..."
-              value={newHabit}
-              onChangeText={(text) => setNewHabit(text)}
-            />
-          </Input>
-          <Button size="lg" onPress={addHabit}>
-            <ButtonIcon as={AddIcon} />
-            <ButtonText>追加</ButtonText>
-          </Button>
+            <Input
+              variant="outline"
+              size="lg"
+              isDisabled={false}
+              isInvalid={false}
+              isReadOnly={false}
+              className='flex-1'
+            >
+              <InputField
+                placeholder="新しい習慣を入力..."
+                value={newHabit}
+                onChangeText={(text) => setNewHabit(text)}
+              />
+            </Input>
+            <Button size="lg" onPress={addHabit}>
+              <ButtonIcon as={AddIcon} />
+              <ButtonText>追加</ButtonText>
+            </Button>
+          </HStack>
 
           <Box className="space-y-4">
             {habits.map((habit) => (
