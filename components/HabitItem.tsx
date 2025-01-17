@@ -42,18 +42,6 @@ export function HabitItem({ habit, onToggle }: HabitItemProps) {
           >
             <Check className="w-5 h-5" />
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className={`rounded-xl ${
-              isCompleted
-                ? 'bg-green-50 border-green-200 text-green-600 hover:bg-green-100'
-                : 'hover:bg-gray-100'
-            }`}
-            onPress={() => onToggle(today)}
-          >
-            <X className="w-5 h-5" />
-          </Button>
         </Box>
       </Box>
     </Box>
