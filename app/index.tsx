@@ -25,7 +25,7 @@ export default function Index() {
   }, []);
 
   return (
-    <View className="justify-center items-center h-full">
+    <View className="justify-center h-full">
       {session && session.user ? (
         <VStack>
           <Text>Welcome {session.user.email}</Text>

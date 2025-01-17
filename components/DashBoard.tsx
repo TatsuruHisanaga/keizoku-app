@@ -4,6 +4,8 @@ import { AddIcon } from '@/components/ui/icon';
 import { VStack } from './ui/vstack';
 import { useState } from 'react';
 import { Heading } from './ui/heading';
+import { HabitItem } from '@/components/habit-item';
+import { Box } from './ui/box';
 
 export default function DashBoard() {
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
@@ -36,6 +38,30 @@ export default function DashBoard() {
     return date.toDateString() === today.toDateString()
   }
 
+  const [habits, setHabits] = useState<{
+    id: string;
+    name: string;
+    streak: number;
+    completedDates: string[];
+  }[]>([]);
+  const [newHabit, setNewHabit] = useState('');
+
+  const addHabit = () => {
+    if (newHabit.trim()) {
+      setHabits([
+        ...habits,
+        {
+          id: Math.random().toString(36).substr(2, 9),
+          name: newHabit,
+          streak: 0,
+          completedDates: []
+        }
+      ])
+      setNewHabit('')
+    }
+  }
+
+
   return (
     <VStack className="w-full">
       <Heading>{formatDateRange()}</Heading>
@@ -46,12 +72,32 @@ export default function DashBoard() {
         isInvalid={false}
         isReadOnly={false}
       >
-        <InputField placeholder="新しい習慣を入力..." />
+        <InputField
+          placeholder="新しい習慣を入力..."
+          value={newHabit}
+          onChangeText={(text) => setNewHabit(text)}
+        />
       </Input>
-      <Button size="lg">
+      <Button size="lg" onPress={addHabit}>
         <ButtonIcon as={AddIcon} />
         <ButtonText>追加</ButtonText>
       </Button>
+
+      <Box className="space-y-4">
+        {habits.map(habit => (
+          <HabitItem
+            key={habit.id}
+            habit={{
+              ...habit,
+              totalDays: habit.completedDates.length
+            }}
+            onToggle={(date) => true}
+          />
+        ))}
+      </Box>
+
     </VStack>
+
+    
   );
 }
