@@ -124,14 +124,11 @@ export default function Index() {
     <Box className="justify-center h-full p-4">
       {session && session.user ? (
         <VStack>
-          <Text>Welcome {session.user.email}</Text>
+          {/* <Text>Welcome {session.user.email}</Text>
           <Button onPress={() => supabase.auth.signOut()}>
             <ButtonText>Sign Out</ButtonText>
-            <ButtonIcon>
-              <AddIcon />
-            </ButtonIcon>
           </Button>
-          <Heading>{formatDateRange()}</Heading>
+          <Heading>{formatDateRange()}</Heading> */}
           <HStack
             space="md"
           >
