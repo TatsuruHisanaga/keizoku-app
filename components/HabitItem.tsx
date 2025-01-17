@@ -18,6 +18,7 @@ export interface HabitItemProps {
 export function HabitItem({ habit, onToggle }: HabitItemProps) {
   const today = new Date().toISOString().split('T')[0]
   const isCompleted = habit.completedDates.includes(today)
+      
 
   return (
     <Box className="bg-white rounded-2xl shadow-sm p-4">
@@ -44,7 +45,11 @@ export function HabitItem({ habit, onToggle }: HabitItemProps) {
           <Button
             variant="outline"
             size="sm"
-            className="rounded-xl hover:bg-gray-100"
+            className={`rounded-xl ${
+              isCompleted
+                ? 'bg-green-50 border-green-200 text-green-600 hover:bg-green-100'
+                : 'hover:bg-gray-100'
+            }`}
             onPress={() => onToggle(today)}
           >
             <X className="w-5 h-5" />
