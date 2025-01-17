@@ -1,4 +1,4 @@
-import { Check, X } from 'lucide-react'
+import { Check, X } from 'lucide-react-native'
 import { Button } from '@/components/ui/button'
 import { Heading } from './ui/heading'
 import { Box } from './ui/box'

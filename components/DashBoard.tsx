@@ -4,7 +4,7 @@ import { AddIcon } from '@/components/ui/icon';
 import { VStack } from './ui/vstack';
 import { useState } from 'react';
 import { Heading } from './ui/heading';
-import { HabitItem } from '@/components/habit-item';
+import { HabitItem } from '@/components/HabitItem';
 import { Box } from './ui/box';
 
 export default function DashBoard() {
