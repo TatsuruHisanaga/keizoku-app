@@ -11,6 +11,7 @@ import { Text } from '@/components/ui/text';
 import { Heading } from '@/components/ui/heading';
 import { Input, InputField } from '@/components/ui/input';
 import { HabitItem } from '@/components/HabitItem';
+import { WeekView } from '@/components/WeekView';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -24,10 +25,11 @@ export default function Index() {
       setSession(session);
     });
   }, []);
+
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const now = new Date();
     const day = now.getDay();
-    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1); // 月曜日を週の始めに設定
     return new Date(now.setDate(diff));
   });
 
@@ -122,7 +124,7 @@ export default function Index() {
   };
 
   return (
-    <Box className="justify-center h-full">
+    <Box className="justify-center h-full p-4">
       {session && session.user ? (
         <VStack>
           <Text>Welcome {session.user.email}</Text>
@@ -172,6 +174,13 @@ export default function Index() {
             streak={achievementData.streak}
             habitName={achievementData.habitName}
           />
+
+          {/* 週間ビュー */}
+          {habits.length > 0 && (
+            <Box className="mt-8">
+              <WeekView habits={habits} onToggle={toggleComplete} />
+            </Box>
+          )}
         </VStack>
       ) : (
         <Auth />
