@@ -152,7 +152,7 @@ export default function Index() {
             </Button>
           </HStack>
 
-          <Box className="space-y-4">
+          <Box className="mt-4 gap-4">
             {habits.map((habit) => (
               <HabitItem
                 key={habit.id}
