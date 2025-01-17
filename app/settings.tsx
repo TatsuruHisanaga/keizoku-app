@@ -6,7 +6,6 @@ import { Session } from '@supabase/supabase-js';
 import { VStack } from '@/components/ui/vstack';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { AddIcon } from '@/components/ui/icon';
-import DashBoard from '../components/DashBoard';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -32,7 +31,6 @@ export default function Index() {
               <AddIcon />
             </ButtonIcon>
           </Button>
-          <DashBoard />
         </VStack>
       ) : (
         <Auth />
