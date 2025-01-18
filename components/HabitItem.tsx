@@ -33,7 +33,7 @@ export function HabitItem({ habit, onToggle }: HabitItemProps) {
           <Button
             variant="outline"
             size="sm"
-            className={`rounded-xl ${
+            className={`w-10 h-10 rounded-xl border-gray-300 ${
               isCompleted
                 ? 'bg-green-50 border-green-200 text-green-600 hover:bg-green-100'
                 : 'hover:bg-gray-100'
