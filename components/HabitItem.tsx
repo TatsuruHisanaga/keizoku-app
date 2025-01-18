@@ -1,4 +1,4 @@
-import { Check, EllipsisVertical, Pencil, Trash2 } from 'lucide-react-native';
+import { Check, EllipsisVertical, SquarePen, Trash2 } from 'lucide-react-native';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Heading } from './ui/heading';
 import { Box } from './ui/box';
@@ -108,7 +108,7 @@ export function HabitItem({ habit, onToggle, onEdit }: HabitItemProps) {
                 onPress={() => setIsEditing(true)}
               >
                 <ButtonIcon
-                  as={Pencil}
+                  as={SquarePen}
                   className={`h-5 w-5`}
                   style={{ color: '#6b7280' }}
                 />
