@@ -1,4 +1,9 @@
-import { Check, EllipsisVertical, SquarePen, Trash2 } from 'lucide-react-native';
+import {
+  Check,
+  EllipsisVertical,
+  SquarePen,
+  Trash2,
+} from 'lucide-react-native';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Heading } from './ui/heading';
 import { Box } from './ui/box';
@@ -52,13 +57,18 @@ export function HabitItem({ habit, onToggle, onEdit }: HabitItemProps) {
       <Box className="flex flex-row items-center justify-between min-h-[42px]">
         <Box className="flex flex-col justify-center">
           {isEditing ? (
-            <Input className="w-48">
-              <InputField
-                value={editedName}
-                onChangeText={setEditedName}
-                placeholder="新しい習慣名を入力"
-              />
-            </Input>
+            <Box>
+              <Input className="w-48">
+                <InputField
+                  value={editedName}
+                  onChangeText={setEditedName}
+                  placeholder="新しい習慣名を入力"
+                />
+              </Input>
+              {error && (
+                <Text className="text-sm text-red-500 mt-1">{error}</Text>
+              )}
+            </Box>
           ) : (
             <>
               <Heading className="text-lg font-medium text-gray-900">
