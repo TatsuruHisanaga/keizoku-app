@@ -46,27 +46,27 @@ export default function AchievementModal({
 
   return (
     <Center>
-      <Modal isOpen={isOpen} onClose={onClose} size="sm" style={{zIndex: 10}}>
+      <Modal isOpen={isOpen} onClose={onClose} size="sm" style={{ zIndex: 10 }}>
         <ModalBackdrop />
-        <ModalContent >
+        <ModalContent>
           <Box className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Trophy color="#ebb305" />
           </Box>
           <ModalHeader>
             <Box></Box>
             <Heading size="md" className="text-typography-950 mb-2">
-              達成おめでとう！
+              連続達成記録
             </Heading>
             <Box></Box>
           </ModalHeader>
-          <ModalBody>
-            <Text size="sm" className="text-typography-500 text-center">
-              {habitName}を{streak}日間継続できました！
-            </Text>
-          </ModalBody>
-          <Text className="text-center text-4xl font-bold text-yellow-500 mb-4">
+          <Text className="text-center text-4xl font-bold text-yellow-500">
             {streak}日
           </Text>
+          <ModalBody>
+            <Text size="sm" className="text-typography-500 text-center">
+              この調子で頑張りましょう！
+            </Text>
+          </ModalBody>
           <ModalFooter>
             <Box
               style={{
@@ -75,10 +75,7 @@ export default function AchievementModal({
                 alignItems: 'center',
               }}
             >
-              <Button
-                onPress={onClose}
-                className="w-full"
-              >
+              <Button onPress={onClose} className="w-full">
                 <ButtonText>続ける</ButtonText>
               </Button>
             </Box>
