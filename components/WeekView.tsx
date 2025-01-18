@@ -26,12 +26,19 @@ export function WeekView({ habits, onToggle }: WeekViewProps) {
   }, []);
 
   const getWeekDates = (): Date[] => {
-    // Replace with actual logic to return an array of dates
-    const startOfWeek = new Date();
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    // 現在の曜日を取得（0: 日曜日, 1: 月曜日, ..., 6: 土曜日）
+    const currentDay = startOfWeek.getDay();
+    // 週の開始日（月曜日）に調整
+    // 日曜日の場合は6を引く（次の月曜日まで戻る）、それ以外は現在の曜日から1を引く
+    const daysToSubtract = currentDay === 0 ? 6 : currentDay - 1;
+    startOfWeek.setDate(today.getDate() - daysToSubtract + weekOffset * 7);
+
     const dates = [];
     for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek);
-      date.setDate(startOfWeek.getDate() + i + weekOffset * 7);
+      date.setDate(startOfWeek.getDate() + i);
       dates.push(date);
     }
     return dates;
@@ -72,7 +79,9 @@ export function WeekView({ habits, onToggle }: WeekViewProps) {
           <ButtonIcon as={ChevronLeftIcon} />
         </Button>
         <Box>
-          <Text className="text-white text-lg font-semibold">{formatWeekRange()}</Text>
+          <Text className="text-white text-lg font-semibold">
+            {formatWeekRange()}
+          </Text>
         </Box>
         <Button
           className="text-gray-400 hover:text-white hover:bg-gray-700 rounded-xl p-1"
