@@ -16,6 +16,7 @@ import { HStack } from '@/components/ui/hstack';
 import { Audio } from 'expo-av';
 import LottieView from 'lottie-react-native';
 import NewHabitModal from '@/components/NewHabitModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -175,6 +176,23 @@ export default function Index() {
     );
   };
 
+  const handleDeleteHabit = (habitId: string) => {
+    setHabits((prevHabits) =>
+      prevHabits.filter((habit) => habit.id !== habitId)
+    );
+
+    // もし AsyncStorage を使用している場合は、ストレージからも削除
+    AsyncStorage.getItem('habits').then((habitsJson) => {
+      if (habitsJson) {
+        const storedHabits = JSON.parse(habitsJson);
+        const updatedHabits = storedHabits.filter(
+          (habit: any) => habit.id !== habitId
+        );
+        AsyncStorage.setItem('habits', JSON.stringify(updatedHabits));
+      }
+    });
+  };
+
   return (
     <Box className="justify-center h-full p-4">
       {session && session.user ? (
@@ -210,6 +228,7 @@ export default function Index() {
                 }}
                 onToggle={(date) => toggleComplete(habit.id, date)}
                 onEdit={(newName) => editHabitName(habit.id, newName)}
+                onDelete={() => handleDeleteHabit(habit.id)}
               />
             ))}
           </Box>
