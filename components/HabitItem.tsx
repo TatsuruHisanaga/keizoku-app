@@ -49,20 +49,26 @@ export function HabitItem({ habit, onToggle, onEdit }: HabitItemProps) {
 
   return (
     <Box className="bg-white rounded-2xl shadow-sm p-4">
-      <Box className="flex flex-row items-center justify-between">
-        <Box>
+      <Box className="flex flex-row items-center justify-between min-h-[42px]">
+        <Box className="flex flex-col justify-center">
           {isEditing ? (
-            <Input>
-              <InputField value={editedName} onChangeText={setEditedName} />
+            <Input className="w-48">
+              <InputField
+                value={editedName}
+                onChangeText={setEditedName}
+                placeholder="新しい習慣名を入力"
+              />
             </Input>
           ) : (
-            <Heading className="text-lg font-medium text-gray-900">
-              {habit.name}
-            </Heading>
+            <>
+              <Heading className="text-lg font-medium text-gray-900">
+                {habit.name}
+              </Heading>
+              <Text className="text-sm text-gray-500">
+                {habit.streak}日連続達成
+              </Text>
+            </>
           )}
-          <Text className="text-sm text-gray-500">
-            {habit.streak}日連続達成
-          </Text>
         </Box>
         <Box className="flex flex-row gap-2">
           {isEditing ? (
