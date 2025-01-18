@@ -3,7 +3,7 @@ import { Button, ButtonIcon } from '@/components/ui/button';
 import { Heading } from './ui/heading';
 import { Box } from './ui/box';
 import { Text } from './ui/text';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export interface HabitItemProps {
   habit: {
@@ -14,13 +14,38 @@ export interface HabitItemProps {
     totalDays: number;
   };
   onToggle: (date: string) => void;
+  onEdit: (newName: string) => void
+
 }
 
-export function HabitItem({ habit, onToggle }: HabitItemProps) {
+export function HabitItem({ habit, onToggle, onEdit }: HabitItemProps) {
   const today = new Date().toISOString().split('T')[0];
   const isCompleted = habit.completedDates.includes(today);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedName, setEditedName] = useState(habit.name)
+  const [error, setError] = useState('')
 
+  const handleSave = () => {
+    if (editedName.trim() === '') {
+      setError('習慣名を入力してください')
+      return
+    }
+    onEdit(editedName)
+    setIsEditing(false)
+    setError('')
+  }
+
+  const handleCancel = () => {
+    setEditedName(habit.name)
+    setIsEditing(false)
+    setError('')
+  }
+
+  useEffect(() => {
+    setError('')
+  }, [isEditing])
+  
   return (
     <Box className="bg-white rounded-2xl shadow-sm p-4">
       <Box className="flex flex-row items-center justify-between">
@@ -39,6 +64,7 @@ export function HabitItem({ habit, onToggle }: HabitItemProps) {
                 variant="outline"
                 size="sm"
                 className={`w-10 h-10 rounded-xl border-gray-300`}
+                onPress={() => setIsEditing(true)}
               >
                 <ButtonIcon
                   as={Pencil}
