@@ -111,13 +111,20 @@ export function WeekView({ habits, onToggle }: WeekViewProps) {
                 <Button
                   key={dateStr}
                   onPress={() => onToggle(habit.id, dateStr)}
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold transition-colors ${
-                    isCompleted
-                      ? 'bg-teal-500 text-white'
-                      : 'bg-gray-700 text-gray-400'
-                  } ${isToday ? 'border-2 border-teal-300' : ''}`}
+                  className={`p-0 w-10 h-10 rounded-lg
+                    ${isCompleted
+                      ? 'bg-teal-500'
+                      : 'bg-gray-700'} 
+                    ${isToday ? 'border-2 border-teal-300' : ''}
+                  `}
                 >
-                  <ButtonText>{dateObj.getDate()}</ButtonText>
+                  <ButtonText 
+                    className={`font-semibold
+                      ${isCompleted ? 'text-white' : 'text-gray-400'}
+                    `}
+                  >
+                      {dateObj.getDate().toString()}
+                  </ButtonText>
                 </Button>
               );
             })}

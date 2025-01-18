@@ -78,6 +78,10 @@ export default function Index() {
 
   const addHabit = () => {
     if (newHabit.trim()) {
+      if (habits.length >= 3) {
+        alert('習慣は3個までしか追加できません');
+        return;
+      }
       setHabits([
         ...habits,
         {
