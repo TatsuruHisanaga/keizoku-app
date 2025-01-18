@@ -15,6 +15,7 @@ import { WeekView } from '@/components/WeekView';
 import { HStack } from '@/components/ui/hstack';
 import { Audio } from 'expo-av';
 import LottieView from 'lottie-react-native';
+import NewHabitModal from '@/components/NewHabitModal';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -66,6 +67,13 @@ export default function Index() {
     }[]
   >([]);
   const [newHabit, setNewHabit] = useState('');
+  const [newHabitModalData, setNewHabitModalData] = useState<{
+    isOpen: boolean;
+    habitName: string;
+  }>({
+    isOpen: false,
+    habitName: '',
+  });
 
   const [achievementData, setAchievementData] = useState<{
     isOpen: boolean;
@@ -76,7 +84,6 @@ export default function Index() {
     streak: 0,
     habitName: '',
   });
-
 
   const addHabit = () => {
     if (newHabit.trim()) {
@@ -93,6 +100,10 @@ export default function Index() {
           completedDates: [],
         },
       ]);
+      setNewHabitModalData({
+        isOpen: true,
+        habitName: newHabit,
+      });
       setNewHabit('');
     }
   };
@@ -134,11 +145,13 @@ export default function Index() {
   };
 
   const editHabitName = (habitId: string, newName: string) => {
-    setHabits(habits.map(habit => 
-      habit.id === habitId ? { ...habit, name: newName } : habit
-    ))
-  }
-  
+    setHabits(
+      habits.map((habit) =>
+        habit.id === habitId ? { ...habit, name: newName } : habit
+      )
+    );
+  };
+
   return (
     <Box className="justify-center h-full p-4">
       {/* <LottieView
@@ -208,6 +221,14 @@ export default function Index() {
             }
             streak={achievementData.streak}
             habitName={achievementData.habitName}
+          />
+
+          <NewHabitModal
+            isOpen={newHabitModalData.isOpen}
+            onClose={() =>
+              setNewHabitModalData((prev) => ({ ...prev, isOpen: false }))
+            }
+            habitName={newHabitModalData.habitName}
           />
 
           {/* 週間ビュー */}
