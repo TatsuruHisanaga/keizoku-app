@@ -52,7 +52,7 @@ export default function Index() {
     let maxStreak = 0;
     let currentStreak = 0;
     let prevDate: Date | null = null;
-  
+
     for (const dateStr of sorted) {
       const dateObj = new Date(dateStr);
       if (
@@ -66,10 +66,9 @@ export default function Index() {
       maxStreak = Math.max(maxStreak, currentStreak);
       prevDate = dateObj;
     }
-  
+
     return maxStreak;
   }
-
 
   const weekDates = getDatesForWeek();
   const today = new Date();
@@ -178,31 +177,8 @@ export default function Index() {
 
   return (
     <Box className="justify-center h-full p-4">
-      {/* <LottieView
-        ref={confettiRef}
-        source={require('@/assets/confetti.json')}
-        autoPlay={false}
-        loop={false}
-        resizeMode="cover"
-        style={{
-          position: 'absolute',
-          zIndex: 1,
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: '100%',
-          width: '100%',
-          pointerEvents: 'none',
-        }}
-      /> */}
       {session && session.user ? (
         <VStack>
-          {/* <Text>Welcome {session.user.email}</Text>
-          <Button onPress={() => supabase.auth.signOut()}>
-            <ButtonText>Sign Out</ButtonText>
-          </Button>
-          <Heading>{formatDateRange()}</Heading> */}
           <HStack space="md">
             <Input
               variant="outline"
