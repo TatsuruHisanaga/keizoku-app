@@ -74,20 +74,22 @@ export function HabitItem({ habit, onToggle, onEdit }: HabitItemProps) {
           {isEditing ? (
             <>
               <Button
-                variant="outline"
+                variant="solid"
                 size="md"
-                className="rounded-lg bg-green-50 hover:bg-green-100  border-green-200"
+                className="rounded-lg bg-green-50 border border-green-200 hover:bg-green-100"
+                style={{ backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }}
                 onPress={handleSave}
               >
-                <ButtonText>保存</ButtonText>
+                <ButtonText className="text-gray-600">保存</ButtonText>
               </Button>
               <Button
-                variant="outline"
+                variant="solid"
                 size="md"
-                className="rounded-lg bg-red-50 hover:bg-red-100 border-red-200"
+                className="rounded-lg bg-red-50 border border-red-200 hover:bg-red-100"
+                style={{ backgroundColor: '#fef2f2', borderColor: '#fecaca' }}
                 onPress={handleCancel}
               >
-                <ButtonText>キャンセル</ButtonText>
+                <ButtonText className="text-gray-600">キャンセル</ButtonText>
               </Button>
             </>
           ) : isMenuOpen ? (
