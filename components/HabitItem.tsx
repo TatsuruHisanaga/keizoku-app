@@ -1,4 +1,4 @@
-import { Check, EllipsisVertical, Pencil, Trash } from 'lucide-react-native';
+import { Check, EllipsisVertical, SquarePen, Trash2 } from 'lucide-react-native';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Heading } from './ui/heading';
 import { Box } from './ui/box';
@@ -49,84 +49,114 @@ export function HabitItem({ habit, onToggle, onEdit }: HabitItemProps) {
 
   return (
     <Box className="bg-white rounded-2xl shadow-sm p-4">
-      <Box className="flex flex-row items-center justify-between">
-        <Box>
+      <Box className="flex flex-row items-center justify-between min-h-[42px]">
+        <Box className="flex flex-col justify-center">
           {isEditing ? (
-            <Input>
-              <InputField value={editedName} onChangeText={setEditedName} />
+            <Input className="w-48">
+              <InputField
+                value={editedName}
+                onChangeText={setEditedName}
+                placeholder="新しい習慣名を入力"
+              />
             </Input>
           ) : (
-            <Heading className="text-lg font-medium text-gray-900">
-              {habit.name}
-            </Heading>
+            <>
+              <Heading className="text-lg font-medium text-gray-900">
+                {habit.name}
+              </Heading>
+              <Text className="text-sm text-gray-500">
+                累計{habit.totalDays}日達成
+              </Text>
+            </>
           )}
-          <Text className="text-sm text-gray-500">
-            {habit.streak}日連続達成
-          </Text>
         </Box>
         <Box className="flex flex-row gap-2">
           {isEditing ? (
             <>
               <Button
-                variant="outline"
+                variant="solid"
                 size="md"
-                className="rounded-lg bg-green-50 hover:bg-green-100  border-green-200"
+                className="rounded-lg border"
+                style={{
+                  backgroundColor: '#f0fdf4',
+                  borderColor: '#bbf7d0',
+                }}
                 onPress={handleSave}
               >
-                <ButtonText>保存</ButtonText>
+                <ButtonText style={{ color: '#4b5563' }}>保存</ButtonText>
               </Button>
               <Button
-                variant="outline"
+                variant="solid"
                 size="md"
-                className="rounded-lg bg-red-50 hover:bg-red-100 border-red-200"
+                className="rounded-lg border"
+                style={{
+                  backgroundColor: '#fef2f2',
+                  borderColor: '#fecaca',
+                }}
                 onPress={handleCancel}
               >
-                <ButtonText>キャンセル</ButtonText>
+                <ButtonText style={{ color: '#4b5563' }}>キャンセル</ButtonText>
               </Button>
             </>
           ) : isMenuOpen ? (
             <>
               <Button
-                variant="outline"
+                variant="solid"
                 size="sm"
-                className={`w-10 h-10 rounded-xl border-gray-300`}
+                className={`w-10 h-10 rounded-xl border border-gray-300`}
+                style={{ backgroundColor: '#ffffff' }}
                 onPress={() => setIsEditing(true)}
               >
-                <ButtonIcon as={Pencil} className={`h-5 w-5`} />
+                <ButtonIcon
+                  as={SquarePen}
+                  className={`h-5 w-5`}
+                  style={{ color: '#6b7280' }}
+                />
               </Button>
               <Button
-                variant="outline"
+                variant="solid"
                 size="sm"
-                className={`w-10 h-10 rounded-xl border-gray-300`}
+                className={`w-10 h-10 rounded-xl border border-gray-300`}
+                style={{ backgroundColor: '#ffffff' }}
               >
-                <ButtonIcon as={Trash} className={`h-5 w-5`} />
+                <ButtonIcon
+                  as={Trash2}
+                  className={`h-5 w-5`}
+                  style={{ color: '#6b7280' }}
+                />
               </Button>
             </>
           ) : (
             <>
               <Button
-                variant="outline"
+                variant="solid"
                 size="sm"
-                className={`w-10 h-10 rounded-xl border-gray-300 ${
-                  isCompleted
-                    ? 'bg-green-50 border-green-200 text-green-600 hover:bg-green-100'
-                    : 'hover:bg-gray-100'
-                }`}
+                className={`w-10 h-10 rounded-xl border`}
+                style={{
+                  backgroundColor: isCompleted ? '#f0fdf4' : '#ffffff',
+                  borderColor: isCompleted ? '#bbf7d0' : '#e5e7eb',
+                }}
                 onPress={() => onToggle(today)}
               >
                 <ButtonIcon
                   as={Check}
-                  className={`h-5 w-5 ${isCompleted ? 'color-green-600' : ''}`}
+                  className={`h-5 w-5`}
+                  style={{ color: isCompleted ? '#16a34a' : '#6b7280' }}
                 />
               </Button>
 
               <Button
-                variant="outline"
+                variant="solid"
                 size="sm"
-                className={`w-10 h-10 rounded-xl border-gray-300`}
+                className={`w-10 h-10 rounded-xl border border-gray-300`}
+                style={{ backgroundColor: '#ffffff' }}
                 onPress={() => setIsMenuOpen(true)}
               >
-                <ButtonIcon as={EllipsisVertical} className={`h-5 w-5`} />
+                <ButtonIcon
+                  as={EllipsisVertical}
+                  className={`h-5 w-5`}
+                  style={{ color: '#6b7280' }}
+                />
               </Button>
             </>
           )}
