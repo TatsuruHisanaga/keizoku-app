@@ -66,14 +66,20 @@ export function HabitItem({ habit, onToggle, onEdit }: HabitItemProps) {
         <Box className="flex flex-row gap-2">
           {isEditing ? (
             <>
-              <Button variant="outline"
+              <Button
+                variant="outline"
                 size="md"
-                className="rounded-md bg-green-50 hover:bg-green-100  border-green-200" onPress={handleSave}>
+                className="rounded-lg bg-green-50 hover:bg-green-100  border-green-200"
+                onPress={handleSave}
+              >
                 <ButtonText>保存</ButtonText>
               </Button>
-              <Button                 variant="outline"
+              <Button
+                variant="outline"
                 size="md"
-                className="rounded-xl bg-red-50 hover:bg-red-100 border-red-200" onPress={handleCancel}>
+                className="rounded-lg bg-red-50 hover:bg-red-100 border-red-200"
+                onPress={handleCancel}
+              >
                 <ButtonText>キャンセル</ButtonText>
               </Button>
             </>
