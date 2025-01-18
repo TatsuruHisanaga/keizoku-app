@@ -31,15 +31,13 @@ export default function NewHabitModal({
 
   useEffect(() => {
     if (isOpen) {
-      // モーダルが開かれたときにアニメーションを開始
+      scaleAnim.setValue(0);
       Animated.spring(scaleAnim, {
         toValue: 1,
         useNativeDriver: true,
         tension: 260,
         friction: 20,
       }).start();
-    } else {
-      scaleAnim.setValue(0);
     }
   }, [isOpen]);
 
