@@ -76,65 +76,87 @@ export function HabitItem({ habit, onToggle, onEdit }: HabitItemProps) {
               <Button
                 variant="solid"
                 size="md"
-                className="rounded-lg bg-green-50 border border-green-200 hover:bg-green-100"
-                style={{ backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }}
+                className="rounded-lg border"
+                style={{
+                  backgroundColor: '#f0fdf4',
+                  borderColor: '#bbf7d0',
+                }}
                 onPress={handleSave}
               >
-                <ButtonText className="text-gray-600">保存</ButtonText>
+                <ButtonText style={{ color: '#4b5563' }}>保存</ButtonText>
               </Button>
               <Button
                 variant="solid"
                 size="md"
-                className="rounded-lg bg-red-50 border border-red-200 hover:bg-red-100"
-                style={{ backgroundColor: '#fef2f2', borderColor: '#fecaca' }}
+                className="rounded-lg border"
+                style={{
+                  backgroundColor: '#fef2f2',
+                  borderColor: '#fecaca',
+                }}
                 onPress={handleCancel}
               >
-                <ButtonText className="text-gray-600">キャンセル</ButtonText>
+                <ButtonText style={{ color: '#4b5563' }}>キャンセル</ButtonText>
               </Button>
             </>
           ) : isMenuOpen ? (
             <>
               <Button
-                variant="outline"
+                variant="solid"
                 size="sm"
-                className={`w-10 h-10 rounded-xl border-gray-300`}
+                className={`w-10 h-10 rounded-xl border border-gray-300`}
+                style={{ backgroundColor: '#ffffff' }}
                 onPress={() => setIsEditing(true)}
               >
-                <ButtonIcon as={Pencil} className={`h-5 w-5`} />
+                <ButtonIcon
+                  as={Pencil}
+                  className={`h-5 w-5`}
+                  style={{ color: '#6b7280' }}
+                />
               </Button>
               <Button
-                variant="outline"
+                variant="solid"
                 size="sm"
-                className={`w-10 h-10 rounded-xl border-gray-300`}
+                className={`w-10 h-10 rounded-xl border border-gray-300`}
+                style={{ backgroundColor: '#ffffff' }}
               >
-                <ButtonIcon as={Trash} className={`h-5 w-5`} />
+                <ButtonIcon
+                  as={Trash}
+                  className={`h-5 w-5`}
+                  style={{ color: '#6b7280' }}
+                />
               </Button>
             </>
           ) : (
             <>
               <Button
-                variant="outline"
+                variant="solid"
                 size="sm"
-                className={`w-10 h-10 rounded-xl border-gray-300 ${
-                  isCompleted
-                    ? 'bg-green-50 border-green-200 text-green-600 hover:bg-green-100'
-                    : 'hover:bg-gray-100'
-                }`}
+                className={`w-10 h-10 rounded-xl border`}
+                style={{
+                  backgroundColor: isCompleted ? '#f0fdf4' : '#ffffff',
+                  borderColor: isCompleted ? '#bbf7d0' : '#e5e7eb',
+                }}
                 onPress={() => onToggle(today)}
               >
                 <ButtonIcon
                   as={Check}
-                  className={`h-5 w-5 ${isCompleted ? 'color-green-600' : ''}`}
+                  className={`h-5 w-5`}
+                  style={{ color: isCompleted ? '#16a34a' : '#6b7280' }}
                 />
               </Button>
 
               <Button
-                variant="outline"
+                variant="solid"
                 size="sm"
-                className={`w-10 h-10 rounded-xl border-gray-300`}
+                className={`w-10 h-10 rounded-xl border border-gray-300`}
+                style={{ backgroundColor: '#ffffff' }}
                 onPress={() => setIsMenuOpen(true)}
               >
-                <ButtonIcon as={EllipsisVertical} className={`h-5 w-5`} />
+                <ButtonIcon
+                  as={EllipsisVertical}
+                  className={`h-5 w-5`}
+                  style={{ color: '#6b7280' }}
+                />
               </Button>
             </>
           )}
