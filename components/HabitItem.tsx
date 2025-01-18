@@ -78,10 +78,8 @@ export function HabitItem({
   return (
     <Box className="bg-white rounded-2xl shadow-sm p-4">
       {showDeleteConfirm ? (
-        <Box className="flex flex-col items-center justify-center py-2">
-          <Text className="text-md text-gray-900 mb-4">
-            本当に削除しますか？
-          </Text>
+        <Box className="flex flex-row items-center justify-between">
+          <Text className="text-md text-gray-900">本当に削除しますか？</Text>
           <Box className="flex flex-row gap-2">
             <Button
               variant="solid"
