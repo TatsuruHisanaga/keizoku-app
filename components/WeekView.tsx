@@ -78,7 +78,7 @@ export function WeekView({ habits, onToggle }: WeekViewProps) {
     <Box className="bg-gray-900 rounded-3xl p-6 shadow-xl">
       <Box className="flex flex-row items-center justify-between mb-6">
         <Button
-          className="text-gray-400 hover:text-white rounded-xl p-1"
+          className="h-10 w-10 text-gray-400 hover:text-white hover:bg-gray-700 rounded-xl p-1"
           onPress={() => setWeekOffset((prev) => prev - 1)}
         >
           <ButtonIcon as={ChevronLeftIcon} />
@@ -89,7 +89,7 @@ export function WeekView({ habits, onToggle }: WeekViewProps) {
           </Text>
         </Box>
         <Button
-          className="text-gray-400 hover:text-white hover:bg-gray-700 rounded-xl p-1"
+          className="h-10 w-10 text-gray-400 hover:text-white hover:bg-gray-700 rounded-xl p-1"
           onPress={() => setWeekOffset((prev) => prev + 1)}
         >
           <ButtonIcon as={ChevronRightIcon} />
