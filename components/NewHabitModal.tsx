@@ -46,8 +46,8 @@ export default function NewHabitModal({
       <Modal isOpen={isOpen} onClose={onClose} size="sm">
         <ModalBackdrop />
         <ModalContent>
-          <Box className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <PartyPopper color="#3b82f6" />
+          <Box className="w-20 h-20 bg-yellow-30 rounded-full flex items-center justify-center mx-auto">
+            <PartyPopper color="#facc15" />
           </Box>
           <ModalHeader>
             <Box></Box>
