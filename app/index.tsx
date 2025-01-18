@@ -13,6 +13,7 @@ import { Input, InputField } from '@/components/ui/input';
 import { HabitItem } from '@/components/HabitItem';
 import { WeekView } from '@/components/WeekView';
 import { HStack } from '@/components/ui/hstack';
+import { Audio } from 'expo-av';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -91,6 +92,12 @@ export default function Index() {
   };
 
   const toggleComplete = (habitId: string, date: string) => {
+    const playSound = async () => {
+      await Audio.Sound.createAsync(
+        require('../assets/sounds/click.mp3'),
+        { shouldPlay: true }
+      );
+    }
     setHabits(
       habits.map((habit) => {
         if (habit.id === habitId) {
@@ -102,6 +109,7 @@ export default function Index() {
           const streak = completedDates.length;
 
           if (!isCompleted && streak > 0) {
+            playSound();
             setAchievementData({
               isOpen: true,
               streak,

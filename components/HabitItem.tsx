@@ -21,18 +21,6 @@ export function HabitItem({ habit, onToggle }: HabitItemProps) {
   const today = new Date().toISOString().split('T')[0]
   const isCompleted = habit.completedDates.includes(today)
 
-  const playSound = async () => {
-    await Audio.Sound.createAsync(
-      require('../assets/sounds/click.mp3'),
-      { shouldPlay: true }
-    );
-  }
-
-  const handleToggle = () => {
-    onToggle(today)
-    playSound()
-  }
-
   return (
     <Box className="bg-white rounded-2xl shadow-sm p-4">
       <Box className="flex flex-row items-center justify-between">
@@ -50,7 +38,7 @@ export function HabitItem({ habit, onToggle }: HabitItemProps) {
                 ? 'bg-green-50 border-green-200 text-green-600 hover:bg-green-100'
                 : 'hover:bg-gray-100'
             }`}
-            onPress={() => handleToggle()}
+            onPress={() => onToggle(today)}
           >
             <ButtonIcon as={Check} className={`h-5 w-5 ${isCompleted ? 'color-green-600' : '' }`}  />
           </Button>
