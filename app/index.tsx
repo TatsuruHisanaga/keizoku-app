@@ -88,6 +88,10 @@ export default function Index() {
 
   const addHabit = () => {
     if (newHabit.trim()) {
+      if (habits.length >= 3) {
+        alert('習慣は3個までしか追加できません');
+        return;
+      }
       setHabits([
         ...habits,
         {
@@ -107,7 +111,6 @@ export default function Index() {
         shouldPlay: true,
       });
     };
-
     setHabits(
       habits.map((habit) => {
         if (habit.id === habitId) {
@@ -139,6 +142,12 @@ export default function Index() {
     );
   };
 
+  const editHabitName = (habitId: string, newName: string) => {
+    setHabits(habits.map(habit => 
+      habit.id === habitId ? { ...habit, name: newName } : habit
+    ))
+  }
+  
   return (
     <Box className="justify-center h-full p-4">
       <LottieView
@@ -196,6 +205,7 @@ export default function Index() {
                   totalDays: habit.completedDates.length,
                 }}
                 onToggle={(date) => toggleComplete(habit.id, date)}
+                onEdit={(newName) => editHabitName(habit.id, newName)}
               />
             ))}
           </Box>
