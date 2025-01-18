@@ -38,6 +38,12 @@ export default function AchievementModal({
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen && confettiRef.current) {
+      confettiRef.current.reset();
+    }
+  }, [isOpen]);
+
   return (
     <Center>
       <Modal isOpen={isOpen} onClose={onClose} size="sm" style={{zIndex: 10}}>
