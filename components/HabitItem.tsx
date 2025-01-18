@@ -1,5 +1,5 @@
-import { Check, X } from 'lucide-react-native'
-import { Button } from '@/components/ui/button'
+import { Check } from 'lucide-react-native'
+import { Button, ButtonIcon } from '@/components/ui/button'
 import { Heading } from './ui/heading'
 import { Box } from './ui/box'
 import { Text } from './ui/text'
@@ -35,14 +35,13 @@ export function HabitItem({ habit, onToggle }: HabitItemProps) {
 
   return (
     <Box className="bg-white rounded-2xl shadow-sm p-4">
-      <Box className="flex items-center justify-between">
+      <Box className="flex flex-row items-center justify-between">
         <Box>
           <Heading className="text-lg font-medium text-gray-900">{habit.name}</Heading>
           <Text className="text-sm text-gray-500">
-            {habit.streak}日連続達成 / 累計{habit.totalDays}日
+            {habit.streak}日連続達成
           </Text>
         </Box>
-        <Box className="flex gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -53,9 +52,8 @@ export function HabitItem({ habit, onToggle }: HabitItemProps) {
             }`}
             onPress={() => handleToggle()}
           >
-            <Check className="w-5 h-5" />
+            <ButtonIcon as={Check} className={`h-5 w-5 ${isCompleted ? 'color-green-600' : '' }`}  />
           </Button>
-        </Box>
       </Box>
     </Box>
   )

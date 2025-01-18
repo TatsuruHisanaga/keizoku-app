@@ -45,7 +45,7 @@ export default function AchievementModal({
           </ModalHeader>
           <ModalBody>
             <Text size="sm" className="text-typography-500 text-center">
-              「{habitName}」を{streak}日間継続できました！
+              {habitName}を{streak}日間継続できました！
             </Text>
           </ModalBody>
           <Text className="text-center text-4xl font-bold text-yellow-500 mb-4">
