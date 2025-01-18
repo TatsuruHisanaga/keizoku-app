@@ -32,6 +32,7 @@ export function HabitItem({ habit, onToggle, onEdit }: HabitItemProps) {
     }
     onEdit(editedName);
     setIsEditing(false);
+    setIsMenuOpen(false);
     setError('');
   };
 
