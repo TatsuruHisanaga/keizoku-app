@@ -11,6 +11,8 @@ import { Text } from '@/components/ui/text';
 import { Heading } from '@/components/ui/heading';
 import { Input, InputField } from '@/components/ui/input';
 import { HabitItem } from '@/components/HabitItem';
+import { WeekView } from '@/components/WeekView';
+import { HStack } from '@/components/ui/hstack';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -24,10 +26,11 @@ export default function Index() {
       setSession(session);
     });
   }, []);
+
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const now = new Date();
     const day = now.getDay();
-    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1); // 月曜日を週の始めに設定
     return new Date(now.setDate(diff));
   });
 
@@ -50,10 +53,6 @@ export default function Index() {
     return `${start.toLocaleDateString('ja-JP', {
       month: 'long',
     })} ${start.getDate()} - ${end.getDate()}`;
-  };
-
-  const isToday = (date: Date) => {
-    return date.toDateString() === today.toDateString();
   };
 
   const [habits, setHabits] = useState<
@@ -122,36 +121,38 @@ export default function Index() {
   };
 
   return (
-    <Box className="justify-center h-full">
+    <Box className="justify-center h-full p-4">
       {session && session.user ? (
         <VStack>
-          <Text>Welcome {session.user.email}</Text>
+          {/* <Text>Welcome {session.user.email}</Text>
           <Button onPress={() => supabase.auth.signOut()}>
             <ButtonText>Sign Out</ButtonText>
-            <ButtonIcon>
-              <AddIcon />
-            </ButtonIcon>
           </Button>
-          <Heading>{formatDateRange()}</Heading>
-          <Input
-            variant="outline"
-            size="lg"
-            isDisabled={false}
-            isInvalid={false}
-            isReadOnly={false}
+          <Heading>{formatDateRange()}</Heading> */}
+          <HStack
+            space="md"
           >
-            <InputField
-              placeholder="新しい習慣を入力..."
-              value={newHabit}
-              onChangeText={(text) => setNewHabit(text)}
-            />
-          </Input>
-          <Button size="lg" onPress={addHabit}>
-            <ButtonIcon as={AddIcon} />
-            <ButtonText>追加</ButtonText>
-          </Button>
+            <Input
+              variant="outline"
+              size="lg"
+              isDisabled={false}
+              isInvalid={false}
+              isReadOnly={false}
+              className='flex-1'
+            >
+              <InputField
+                placeholder="新しい習慣を入力..."
+                value={newHabit}
+                onChangeText={(text) => setNewHabit(text)}
+              />
+            </Input>
+            <Button size="lg" onPress={addHabit}>
+              <ButtonIcon as={AddIcon} />
+              <ButtonText>追加</ButtonText>
+            </Button>
+          </HStack>
 
-          <Box className="space-y-4">
+          <Box className="mt-4 gap-4">
             {habits.map((habit) => (
               <HabitItem
                 key={habit.id}
@@ -172,6 +173,13 @@ export default function Index() {
             streak={achievementData.streak}
             habitName={achievementData.habitName}
           />
+
+          {/* 週間ビュー */}
+          {habits.length > 0 && (
+            <Box className="mt-8">
+              <WeekView habits={habits} onToggle={toggleComplete} />
+            </Box>
+          )}
         </VStack>
       ) : (
         <Auth />
