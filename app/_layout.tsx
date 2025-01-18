@@ -12,11 +12,11 @@ export default function RootLayout() {
       <Drawer>
         <Drawer.Screen
           name="index"
-          options={{ title: "Home" }}
+          options={{ title: "ホーム" }}
         />
         <Drawer.Screen
           name="settings"
-          options={{ title: "Settings" }}
+          options={{ title: "設定" }}
         />
       </Drawer>
     </GestureHandlerRootView>
