@@ -77,14 +77,6 @@ export default function Index() {
     habitName: '',
   });
 
-  const confettiRef = useRef<LottieView | null>(null);
-
-  const triggerConfetti = () => {
-    if (confettiRef.current) {
-      confettiRef.current.reset();
-      confettiRef.current.play();
-    }
-  };
 
   const addHabit = () => {
     if (newHabit.trim()) {
@@ -128,7 +120,6 @@ export default function Index() {
               streak,
               habitName: habit.name,
             });
-            triggerConfetti();
           }
 
           return {
@@ -150,7 +141,7 @@ export default function Index() {
   
   return (
     <Box className="justify-center h-full p-4">
-      <LottieView
+      {/* <LottieView
         ref={confettiRef}
         source={require('@/assets/confetti.json')}
         autoPlay={false}
@@ -158,7 +149,7 @@ export default function Index() {
         resizeMode="cover"
         style={{
           position: 'absolute',
-          zIndex: 100000,
+          zIndex: 1,
           top: 0,
           left: 0,
           right: 0,
@@ -167,7 +158,7 @@ export default function Index() {
           width: '100%',
           pointerEvents: 'none',
         }}
-      />
+      /> */}
       {session && session.user ? (
         <VStack>
           {/* <Text>Welcome {session.user.email}</Text>
