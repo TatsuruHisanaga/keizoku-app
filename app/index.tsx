@@ -97,11 +97,10 @@ export default function Index() {
 
   const toggleComplete = (habitId: string, date: string) => {
     const playSound = async () => {
-      await Audio.Sound.createAsync(
-        require('../assets/sounds/click.mp3'),
-        { shouldPlay: true }
-      );
-    }
+      await Audio.Sound.createAsync(require('../assets/sounds/click.mp3'), {
+        shouldPlay: true,
+      });
+    };
     setHabits(
       habits.map((habit) => {
         if (habit.id === habitId) {
@@ -132,6 +131,12 @@ export default function Index() {
     );
   };
 
+  const editHabitName = (habitId: string, newName: string) => {
+    setHabits(habits.map(habit => 
+      habit.id === habitId ? { ...habit, name: newName } : habit
+    ))
+  }
+  
   return (
     <Box className="justify-center h-full p-4">
       {session && session.user ? (
@@ -141,16 +146,14 @@ export default function Index() {
             <ButtonText>Sign Out</ButtonText>
           </Button>
           <Heading>{formatDateRange()}</Heading> */}
-          <HStack
-            space="md"
-          >
+          <HStack space="md">
             <Input
               variant="outline"
               size="lg"
               isDisabled={false}
               isInvalid={false}
               isReadOnly={false}
-              className='flex-1'
+              className="flex-1"
             >
               <InputField
                 placeholder="新しい習慣を入力..."
@@ -173,6 +176,7 @@ export default function Index() {
                   totalDays: habit.completedDates.length,
                 }}
                 onToggle={(date) => toggleComplete(habit.id, date)}
+                onEdit={(newName) => editHabitName(habit.id, newName)}
               />
             ))}
           </Box>

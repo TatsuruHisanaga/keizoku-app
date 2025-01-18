@@ -4,7 +4,7 @@ import { Heading } from './ui/heading';
 import { Box } from './ui/box';
 import { Text } from './ui/text';
 import { useEffect, useState } from 'react';
-
+import { Input, InputField } from './ui/input';
 export interface HabitItemProps {
   habit: {
     id: string;
@@ -50,9 +50,15 @@ export function HabitItem({ habit, onToggle, onEdit }: HabitItemProps) {
     <Box className="bg-white rounded-2xl shadow-sm p-4">
       <Box className="flex flex-row items-center justify-between">
         <Box>
-          <Heading className="text-lg font-medium text-gray-900">
-            {habit.name}
-          </Heading>
+          {isEditing ? (
+            <Input>
+              <InputField value={editedName} onChangeText={setEditedName} />
+            </Input>
+          ) : (
+            <Heading className="text-lg font-medium text-gray-900">
+              {habit.name}
+            </Heading>
+          )}
           <Text className="text-sm text-gray-500">
             {habit.streak}日連続達成
           </Text>
