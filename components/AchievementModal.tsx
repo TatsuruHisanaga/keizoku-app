@@ -55,7 +55,7 @@ export default function AchievementModal({
           <ModalHeader>
             <Box></Box>
             <Heading size="md" className="text-typography-950 mb-2">
-              連続達成記録
+              連続日数
             </Heading>
             <Box></Box>
           </ModalHeader>

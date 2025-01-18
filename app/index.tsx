@@ -47,6 +47,30 @@ export default function Index() {
     return dates;
   };
 
+  function getMaxConsecutiveDays(dates: string[]): number {
+    const sorted = [...dates].sort();
+    let maxStreak = 0;
+    let currentStreak = 0;
+    let prevDate: Date | null = null;
+  
+    for (const dateStr of sorted) {
+      const dateObj = new Date(dateStr);
+      if (
+        prevDate &&
+        dateObj.getTime() - prevDate.getTime() === 24 * 60 * 60 * 1000
+      ) {
+        currentStreak++;
+      } else {
+        currentStreak = 1;
+      }
+      maxStreak = Math.max(maxStreak, currentStreak);
+      prevDate = dateObj;
+    }
+  
+    return maxStreak;
+  }
+
+
   const weekDates = getDatesForWeek();
   const today = new Date();
 
@@ -132,11 +156,11 @@ export default function Index() {
               habitName: habit.name,
             });
           }
-
+          const newMaxStreak = getMaxConsecutiveDays(completedDates);
           return {
             ...habit,
             completedDates,
-            streak: completedDates.length,
+            streak: newMaxStreak,
           };
         }
         return habit;

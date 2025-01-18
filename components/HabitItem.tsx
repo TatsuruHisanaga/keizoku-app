@@ -48,6 +48,7 @@ export function HabitItem({ habit, onToggle, onEdit }: HabitItemProps) {
     setError('');
   };
 
+
   useEffect(() => {
     setError('');
   }, [isEditing]);
@@ -75,7 +76,7 @@ export function HabitItem({ habit, onToggle, onEdit }: HabitItemProps) {
                 {habit.name}
               </Heading>
               <Text className="text-sm text-gray-500">
-                累計{habit.totalDays}日達成
+              累計{habit.totalDays}日達成 / 最高連続{habit.streak}日
               </Text>
             </>
           )}
