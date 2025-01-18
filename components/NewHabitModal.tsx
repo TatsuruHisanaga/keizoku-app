@@ -57,11 +57,11 @@ export default function NewHabitModal({
             <Box></Box>
           </ModalHeader>
           <ModalBody>
-            <Text size="sm" className="text-typography-500 text-center mb-2">
+            {/* <Text size="sm" className="text-typography-500 text-center mb-2">
               {habitName}を追加しました！
-            </Text>
+            </Text> */}
             <Text size="sm" className="text-typography-500 text-center">
-              頑張りましょう！継続は力なり！
+              継続は力なり！頑張りましょう！
             </Text>
           </ModalBody>
           <ModalFooter>
