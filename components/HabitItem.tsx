@@ -1,4 +1,4 @@
-import { Check, EllipsisVertical, Pencil, Trash } from 'lucide-react-native';
+import { Check, EllipsisVertical, Pencil, Trash2 } from 'lucide-react-native';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Heading } from './ui/heading';
 import { Box } from './ui/box';
@@ -65,7 +65,7 @@ export function HabitItem({ habit, onToggle, onEdit }: HabitItemProps) {
                 {habit.name}
               </Heading>
               <Text className="text-sm text-gray-500">
-                {habit.streak}日連続達成
+                累計{habit.totalDays}日達成
               </Text>
             </>
           )}
@@ -120,7 +120,7 @@ export function HabitItem({ habit, onToggle, onEdit }: HabitItemProps) {
                 style={{ backgroundColor: '#ffffff' }}
               >
                 <ButtonIcon
-                  as={Trash}
+                  as={Trash2}
                   className={`h-5 w-5`}
                   style={{ color: '#6b7280' }}
                 />
