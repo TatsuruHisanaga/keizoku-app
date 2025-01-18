@@ -66,7 +66,7 @@ export function HabitItem({ habit, onToggle, onEdit }: HabitItemProps) {
         <Box className="flex flex-row gap-2">
           {isEditing ? (
             <>
-              <Button>
+              <Button onPress={handleSave}>
                 <ButtonText>保存</ButtonText>
               </Button>
               <Button onPress={handleCancel}>
