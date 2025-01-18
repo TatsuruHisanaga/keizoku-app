@@ -3,6 +3,8 @@ import { Button, ButtonIcon } from '@/components/ui/button'
 import { Heading } from './ui/heading'
 import { Box } from './ui/box'
 import { Text } from './ui/text'
+import { Audio } from 'expo-av'
+import { useEffect } from 'react'
 
 export interface HabitItemProps {
   habit: {
@@ -18,7 +20,18 @@ export interface HabitItemProps {
 export function HabitItem({ habit, onToggle }: HabitItemProps) {
   const today = new Date().toISOString().split('T')[0]
   const isCompleted = habit.completedDates.includes(today)
-      
+
+  const playSound = async () => {
+    await Audio.Sound.createAsync(
+      require('../assets/sounds/click.mp3'),
+      { shouldPlay: true }
+    );
+  }
+
+  const handleToggle = () => {
+    onToggle(today)
+    playSound()
+  }
 
   return (
     <Box className="bg-white rounded-2xl shadow-sm p-4">
@@ -29,18 +42,18 @@ export function HabitItem({ habit, onToggle }: HabitItemProps) {
             {habit.streak}日連続達成
           </Text>
         </Box>
-        <Button
-          variant="outline"
-          size="sm"
-          className={`w-10 h-10 rounded-xl flex items-center justify-center  border ${
-            isCompleted
-              ? 'bg-green-50 border-green-300 text-green-600 hover:bg-green-100'
-              : 'border-gray-300 hover:bg-gray-100'
-          }`}
-          onPress={() => onToggle(today)}
-        >
-          <ButtonIcon as={Check} className={`h-5 w-5 ${isCompleted ? 'color-green-600' : '' }`}  />
-        </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className={`rounded-xl ${
+              isCompleted
+                ? 'bg-green-50 border-green-200 text-green-600 hover:bg-green-100'
+                : 'hover:bg-gray-100'
+            }`}
+            onPress={() => handleToggle()}
+          >
+            <ButtonIcon as={Check} className={`h-5 w-5 ${isCompleted ? 'color-green-600' : '' }`}  />
+          </Button>
       </Box>
     </Box>
   )
