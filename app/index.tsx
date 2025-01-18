@@ -1,6 +1,6 @@
 import Auth from '@/components/Auth';
 import { supabase } from '@/lib/supabase';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { VStack } from '@/components/ui/vstack';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { HabitItem } from '@/components/HabitItem';
 import { WeekView } from '@/components/WeekView';
 import { HStack } from '@/components/ui/hstack';
 import { Audio } from 'expo-av';
+import LottieView from 'lottie-react-native';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -76,6 +77,15 @@ export default function Index() {
     habitName: '',
   });
 
+  const confettiRef = useRef<LottieView | null>(null);
+
+  const triggerConfetti = () => {
+    if (confettiRef.current) {
+      confettiRef.current.reset();
+      confettiRef.current.play();
+    }
+  };
+
   const addHabit = () => {
     if (newHabit.trim()) {
       if (habits.length >= 3) {
@@ -118,6 +128,7 @@ export default function Index() {
               streak,
               habitName: habit.name,
             });
+            triggerConfetti();
           }
 
           return {
@@ -139,6 +150,24 @@ export default function Index() {
   
   return (
     <Box className="justify-center h-full p-4">
+      <LottieView
+        ref={confettiRef}
+        source={require('@/assets/confetti.json')}
+        autoPlay={false}
+        loop={false}
+        resizeMode="cover"
+        style={{
+          position: 'absolute',
+          zIndex: 100000,
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: '100%',
+          width: '100%',
+          pointerEvents: 'none',
+        }}
+      />
       {session && session.user ? (
         <VStack>
           {/* <Text>Welcome {session.user.email}</Text>
