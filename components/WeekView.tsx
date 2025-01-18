@@ -64,7 +64,12 @@ export function WeekView({ habits, onToggle }: WeekViewProps) {
   const formatWeekRange = () => {
     const start = weekDates[0];
     const end = weekDates[6];
-    return `${start.getMonth() + 1}月 ${start.getDate()} - ${end.getDate()}`;
+    const startMonth = start.getMonth() + 1;
+    const endMonth = end.getMonth() + 1;
+
+    return `${startMonth}月${start.getDate()}日 - ${
+      startMonth !== endMonth ? `${endMonth}月` : ''
+    }${end.getDate()}日`;
   };
 
   if (!mounted) return null;
