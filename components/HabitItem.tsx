@@ -11,6 +11,7 @@ import { Text } from './ui/text';
 import { useEffect, useState, useRef } from 'react';
 import { Input, InputField } from './ui/input';
 import { Animated, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
 export interface HabitItemProps {
   habit: {
@@ -42,18 +43,21 @@ export function HabitItem({
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [containerHeight, setContainerHeight] = useState<number>(0);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (editedName.trim() === '') {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       setError('習慣名を入力してください');
       return;
     }
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onEdit(editedName);
     setIsEditing(false);
     setIsMenuOpen(false);
     setError('');
   };
 
-  const handleDeleteClick = () => {
+  const handleDeleteClick = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setShowDeleteConfirm(true);
     setIsMenuOpen(false);
   };
@@ -84,12 +88,14 @@ export function HabitItem({
     });
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setShowDeleteConfirm(false);
     animateAndDelete();
   };
 
-  const handleDeleteCancel = () => {
+  const handleDeleteCancel = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setShowDeleteConfirm(false);
   };
 

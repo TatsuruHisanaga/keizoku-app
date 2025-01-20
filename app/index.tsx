@@ -17,6 +17,7 @@ import { Audio } from 'expo-av';
 import LottieView from 'lottie-react-native';
 import NewHabitModal from '@/components/NewHabitModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -109,12 +110,14 @@ export default function Index() {
     habitName: '',
   });
 
-  const addHabit = () => {
+  const addHabit = async () => {
     if (newHabit.trim()) {
       if (habits.length >= 3) {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         alert('習慣は3個までしか追加できません');
         return;
       }
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       setHabits([
         ...habits,
         {
@@ -132,12 +135,15 @@ export default function Index() {
     }
   };
 
-  const toggleComplete = (habitId: string, date: string) => {
+  const toggleComplete = async (habitId: string, date: string) => {
     const playSound = async () => {
       await Audio.Sound.createAsync(require('../assets/sounds/click.mp3'), {
         shouldPlay: true,
       });
     };
+
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
     setHabits(
       habits.map((habit) => {
         if (habit.id === habitId) {

@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/icon';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import * as Haptics from 'expo-haptics';
 
 interface WeekViewProps {
   habits: {
@@ -79,7 +80,10 @@ export function WeekView({ habits, onToggle }: WeekViewProps) {
       <Box className="flex flex-row items-center justify-between mb-6">
         <Button
           className="h-10 w-10 text-gray-400 hover:text-white hover:bg-gray-700 rounded-xl p-1"
-          onPress={() => setWeekOffset((prev) => prev - 1)}
+          onPress={async () => {
+            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setWeekOffset((prev) => prev - 1);
+          }}
         >
           <ButtonIcon as={ChevronLeftIcon} />
         </Button>
@@ -90,7 +94,10 @@ export function WeekView({ habits, onToggle }: WeekViewProps) {
         </Box>
         <Button
           className="h-10 w-10 text-gray-400 hover:text-white hover:bg-gray-700 rounded-xl p-1"
-          onPress={() => setWeekOffset((prev) => prev + 1)}
+          onPress={async () => {
+            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setWeekOffset((prev) => prev + 1);
+          }}
         >
           <ButtonIcon as={ChevronRightIcon} />
         </Button>
@@ -110,7 +117,12 @@ export function WeekView({ habits, onToggle }: WeekViewProps) {
                 return (
                   <Button
                     key={dateStr}
-                    onPress={() => onToggle(habit.id, dateStr)}
+                    onPress={async () => {
+                      await Haptics.impactAsync(
+                        Haptics.ImpactFeedbackStyle.Light
+                      );
+                      onToggle(habit.id, dateStr);
+                    }}
                     className={`p-0 w-10 h-10 rounded-lg
                       ${isCompleted ? 'bg-teal-500' : 'bg-gray-700'} 
                       ${isToday ? 'border-2 border-teal-300' : ''}
