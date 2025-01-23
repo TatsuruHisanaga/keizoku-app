@@ -105,7 +105,8 @@ export function WeekView({ habits, onToggle }: WeekViewProps) {
               {weekDates.map((dateObj) => {
                 const dateStr = dateObj.toISOString().split('T')[0];
                 const completedDates = habit.completedDates || [];
-                const isCompleted = completedDates.includes(dateStr);                const isToday = dateStr === today;
+                const isCompleted = completedDates.includes(dateStr);
+                const isToday = dateStr === today;
 
                 return (
                   <Button
