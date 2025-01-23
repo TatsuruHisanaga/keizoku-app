@@ -11,6 +11,8 @@ import { Text } from './ui/text';
 import { useEffect, useState, useRef } from 'react';
 import { Input, InputField } from './ui/input';
 import { Animated, View } from 'react-native';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface HabitItemProps {
   habit: {
@@ -31,6 +33,7 @@ export function HabitItem({
   onEdit,
   onDelete,
 }: HabitItemProps) {
+  const { user } = useAuth();
   const today = new Date().toISOString().split('T')[0];
   const isCompleted = habit.completedDates.includes(today);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -42,15 +45,29 @@ export function HabitItem({
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [containerHeight, setContainerHeight] = useState<number>(0);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (editedName.trim() === '') {
       setError('習慣名を入力してください');
       return;
     }
-    onEdit(editedName);
-    setIsEditing(false);
-    setIsMenuOpen(false);
-    setError('');
+
+    try {
+      const { error } = await supabase
+        .from('habits')
+        .update({ name: editedName })
+        .eq('id', habit.id)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      onEdit(editedName);
+      setIsEditing(false);
+      setIsMenuOpen(false);
+      setError('');
+    } catch (error) {
+      console.error('Error updating habit:', error);
+      setError('更新に失敗しました');
+    }
   };
 
   const handleDeleteClick = () => {
@@ -84,9 +101,21 @@ export function HabitItem({
     });
   };
 
-  const handleDeleteConfirm = () => {
-    setShowDeleteConfirm(false);
-    animateAndDelete();
+  const handleDeleteConfirm = async () => {
+    try {
+      const { error } = await supabase
+        .from('habits')
+        .delete()
+        .eq('id', habit.id)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      setShowDeleteConfirm(false);
+      animateAndDelete();
+    } catch (error) {
+      console.error('Error deleting habit:', error);
+    }
   };
 
   const handleDeleteCancel = () => {
@@ -212,26 +241,36 @@ export function HabitItem({
                     <Button
                       variant="solid"
                       size="sm"
-                      className={`w-10 h-10 rounded-xl border border-gray-300`}
-                      style={{ backgroundColor: '#ffffff' }}
+                      className={`w-10 h-10 
+                        rounded-xl border 
+                        border-gray-300`}
+                      style={{
+                        backgroundColor: '#ffffff',
+                      }}
                       onPress={() => setIsEditing(true)}
                     >
                       <ButtonIcon
                         as={SquarePen}
-                        className={`h-5 w-5`}
+                        className={`h-5 
+                          w-5`}
                         style={{ color: '#6b7280' }}
                       />
                     </Button>
                     <Button
                       variant="solid"
                       size="sm"
-                      className={`w-10 h-10 rounded-xl border border-gray-300`}
-                      style={{ backgroundColor: '#ffffff' }}
+                      className={`w-10 h-10 
+                        rounded-xl border 
+                        border-gray-300`}
+                      style={{
+                        backgroundColor: '#ffffff',
+                      }}
                       onPress={handleDeleteClick}
                     >
                       <ButtonIcon
                         as={Trash2}
-                        className={`h-5 w-5`}
+                        className={`h-5 
+                          w-5`}
                         style={{ color: '#6b7280' }}
                       />
                     </Button>
@@ -241,7 +280,8 @@ export function HabitItem({
                     <Button
                       variant="solid"
                       size="sm"
-                      className={`w-10 h-10 rounded-xl border`}
+                      className={`w-10 h-10 
+                        rounded-xl border`}
                       style={{
                         backgroundColor: isCompleted ? '#f0fdf4' : '#ffffff',
                         borderColor: isCompleted ? '#bbf7d0' : '#e5e7eb',
@@ -250,7 +290,8 @@ export function HabitItem({
                     >
                       <ButtonIcon
                         as={Check}
-                        className={`h-5 w-5`}
+                        className={`h-5 
+                          w-5`}
                         style={{ color: isCompleted ? '#16a34a' : '#6b7280' }}
                       />
                     </Button>
@@ -258,13 +299,18 @@ export function HabitItem({
                     <Button
                       variant="solid"
                       size="sm"
-                      className={`w-10 h-10 rounded-xl border border-gray-300`}
-                      style={{ backgroundColor: '#ffffff' }}
+                      className={`w-10 h-10 
+                        rounded-xl border 
+                        border-gray-300`}
+                      style={{
+                        backgroundColor: '#ffffff',
+                      }}
                       onPress={() => setIsMenuOpen(true)}
                     >
                       <ButtonIcon
                         as={EllipsisVertical}
-                        className={`h-5 w-5`}
+                        className={`h-5 
+                          w-5`}
                         style={{ color: '#6b7280' }}
                       />
                     </Button>

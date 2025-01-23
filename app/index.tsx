@@ -223,29 +223,40 @@ export default function Index() {
     }
   };
 
-  const editHabitName = (habitId: string, newName: string) => {
-    setHabits(
-      habits.map((habit) =>
-        habit.id === habitId ? { ...habit, name: newName } : habit
-      )
-    );
+  const editHabitName = async (habitId: string, newName: string) => {
+    try {
+      const { error } = await supabase
+        .from('habits')
+        .update({ name: newName })
+        .eq('id', habitId);
+
+      if (error) throw error;
+
+      setHabits(
+        habits.map((habit) =>
+          habit.id === habitId ? { ...habit, name: newName } : habit
+        )
+      );
+    } catch (error) {
+      console.error('Error updating habit name:', error);
+    }
   };
 
-  const handleDeleteHabit = (habitId: string) => {
-    setHabits((prevHabits) =>
-      prevHabits.filter((habit) => habit.id !== habitId)
-    );
+  const handleDeleteHabit = async (habitId: string) => {
+    try {
+      const { error } = await supabase
+        .from('habits')
+        .delete()
+        .eq('id', habitId);
 
-    // もし AsyncStorage を使用している場合は、ストレージからも削除
-    AsyncStorage.getItem('habits').then((habitsJson) => {
-      if (habitsJson) {
-        const storedHabits = JSON.parse(habitsJson);
-        const updatedHabits = storedHabits.filter(
-          (habit: any) => habit.id !== habitId
-        );
-        AsyncStorage.setItem('habits', JSON.stringify(updatedHabits));
-      }
-    });
+      if (error) throw error;
+
+      setHabits((prevHabits) =>
+        prevHabits.filter((habit) => habit.id !== habitId)
+      );
+    } catch (error) {
+      console.error('Error deleting habit:', error);
+    }
   };
 
   return (
