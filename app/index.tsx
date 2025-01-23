@@ -109,63 +109,118 @@ export default function Index() {
     habitName: '',
   });
 
-  const addHabit = () => {
+  // habitデータの取得
+  useEffect(() => {
+    if (session?.user) {
+      fetchHabits();
+    }
+  }, [session]);
+
+  const fetchHabits = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('habits')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      if (data) {
+        setHabits(data);
+      }
+    } catch (error) {
+      console.error('Error fetching habits:', error);
+    }
+  };
+
+  // 習慣の追加
+  const addHabit = async () => {
     if (newHabit.trim()) {
       if (habits.length >= 3) {
         alert('習慣は3個までしか追加できません');
         return;
       }
-      setHabits([
-        ...habits,
-        {
-          id: Math.random().toString(36).substr(2, 9),
-          name: newHabit,
-          streak: 0,
-          completedDates: [],
-        },
-      ]);
-      setNewHabitModalData({
-        isOpen: true,
-        habitName: newHabit,
-      });
-      setNewHabit('');
+
+      try {
+        const { data, error } = await supabase
+          .from('habits')
+          .insert([
+            {
+              name: newHabit,
+              streak: 0,
+              completed_dates: [],
+              user_id: session?.user?.id,
+            },
+          ])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setHabits([...habits, data]);
+          setNewHabitModalData({
+            isOpen: true,
+            habitName: newHabit,
+          });
+          setNewHabit('');
+        }
+      } catch (error) {
+        console.error('Error adding habit:', error);
+      }
     }
   };
 
-  const toggleComplete = (habitId: string, date: string) => {
-    const playSound = async () => {
-      await Audio.Sound.createAsync(require('../assets/sounds/click.mp3'), {
-        shouldPlay: true,
-      });
-    };
-    setHabits(
-      habits.map((habit) => {
-        if (habit.id === habitId) {
-          const isCompleted = habit.completedDates.includes(date);
-          const completedDates = isCompleted
-            ? habit.completedDates.filter((d) => d !== date)
-            : [...habit.completedDates, date];
+  // 習慣の完了状態の切り替え
+  const toggleComplete = async (habitId: string, date: string) => {
+    try {
+      const habit = habits.find((h) => h.id === habitId);
+      if (!habit) return;
 
-          const streak = completedDates.length;
+      const isCompleted = habit.completedDates.includes(date);
+      const completedDates = isCompleted
+        ? habit.completedDates.filter((d) => d !== date)
+        : [...habit.completedDates, date];
 
-          if (!isCompleted && streak > 0) {
-            playSound();
-            setAchievementData({
-              isOpen: true,
-              streak,
-              habitName: habit.name,
-            });
+      const streak = getMaxConsecutiveDays(completedDates);
+
+      const { error } = await supabase
+        .from('habits')
+        .update({
+          completed_dates: completedDates,
+          streak,
+          total_days: completedDates.length,
+        })
+        .eq('id', habitId);
+
+      if (error) throw error;
+
+      // UI更新とサウンド再生
+      const playSound = async () => {
+        await Audio.Sound.createAsync(require('../assets/sounds/click.mp3'), {
+          shouldPlay: true,
+        });
+      };
+
+      setHabits(
+        habits.map((h) => {
+          if (h.id === habitId) {
+            if (!isCompleted && completedDates.length > 0) {
+              playSound();
+              setAchievementData({
+                isOpen: true,
+                streak: completedDates.length,
+                habitName: h.name,
+              });
+            }
+            return { ...h, completedDates, streak };
           }
-          const newMaxStreak = getMaxConsecutiveDays(completedDates);
-          return {
-            ...habit,
-            completedDates,
-            streak: newMaxStreak,
-          };
-        }
-        return habit;
-      })
-    );
+          return h;
+        })
+      );
+    } catch (error) {
+      console.error('Error toggling habit:', error);
+    }
   };
 
   const editHabitName = (habitId: string, newName: string) => {
