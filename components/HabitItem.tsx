@@ -35,7 +35,8 @@ export function HabitItem({
 }: HabitItemProps) {
   const { user } = useAuth();
   const today = new Date().toISOString().split('T')[0];
-  const isCompleted = habit.completedDates.includes(today);
+  const completedDates = habit.completedDates || [];
+  const isCompleted = completedDates.includes(today);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(habit.name);

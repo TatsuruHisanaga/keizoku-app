@@ -127,11 +127,11 @@ export default function Index() {
       if (error) throw error;
 
       if (data) {
-        // データの形式を変換
+        // データの形式を変換し、completed_datesがnullの場合は空配列を設定
         const formattedData = data.map((habit) => ({
           id: habit.id,
           name: habit.name,
-          streak: habit.streak,
+          streak: habit.streak || 0,
           completedDates: habit.completed_dates || [],
           totalDays: habit.total_days || 0,
         }));
@@ -186,19 +186,21 @@ export default function Index() {
       const habit = habits.find((h) => h.id === habitId);
       if (!habit) return;
 
-      const isCompleted = habit.completedDates.includes(date);
-      const completedDates = isCompleted
-        ? habit.completedDates.filter((d) => d !== date)
-        : [...habit.completedDates, date];
+      // completedDatesが未定義の場合は空配列を使用
+      const completedDates = habit.completedDates || [];
+      const isCompleted = completedDates.includes(date);
+      const updatedCompletedDates = isCompleted
+        ? completedDates.filter((d) => d !== date)
+        : [...completedDates, date];
 
-      const streak = getMaxConsecutiveDays(completedDates);
+      const streak = getMaxConsecutiveDays(updatedCompletedDates);
 
       const { error } = await supabase
         .from('habits')
         .update({
-          completed_dates: completedDates,
+          completed_dates: updatedCompletedDates,
           streak,
-          total_days: completedDates.length,
+          total_days: updatedCompletedDates.length,
         })
         .eq('id', habitId);
 
@@ -214,15 +216,15 @@ export default function Index() {
       setHabits(
         habits.map((h) => {
           if (h.id === habitId) {
-            if (!isCompleted && completedDates.length > 0) {
+            if (!isCompleted && updatedCompletedDates.length > 0) {
               playSound();
               setAchievementData({
                 isOpen: true,
-                streak: completedDates.length,
+                streak: updatedCompletedDates.length,
                 habitName: h.name,
               });
             }
-            return { ...h, completedDates, streak };
+            return { ...h, completedDates: updatedCompletedDates, streak };
           }
           return h;
         })
@@ -299,7 +301,7 @@ export default function Index() {
                 key={habit.id}
                 habit={{
                   ...habit,
-                  totalDays: habit.completedDates.length,
+                  totalDays: habit.completedDates?.length,
                 }}
                 onToggle={(date) => toggleComplete(habit.id, date)}
                 onEdit={(newName) => editHabitName(habit.id, newName)}
