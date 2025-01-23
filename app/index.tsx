@@ -88,6 +88,7 @@ export default function Index() {
       name: string;
       streak: number;
       completedDates: string[];
+      totalDays: number;
     }[]
   >([]);
   const [newHabit, setNewHabit] = useState('');
@@ -126,7 +127,15 @@ export default function Index() {
       if (error) throw error;
 
       if (data) {
-        setHabits(data);
+        // データの形式を変換
+        const formattedData = data.map((habit) => ({
+          id: habit.id,
+          name: habit.name,
+          streak: habit.streak,
+          completedDates: habit.completed_dates || [],
+          totalDays: habit.total_days || 0,
+        }));
+        setHabits(formattedData);
       }
     } catch (error) {
       console.error('Error fetching habits:', error);
