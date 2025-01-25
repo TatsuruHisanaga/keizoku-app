@@ -9,7 +9,9 @@
     "ios": "DARK_MODE=media expo start --ios",
     "web": "DARK_MODE=media expo start --web",
     "test": "jest --watchAll",
-    "lint": "expo lint"
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,css,scss,json,md}\"",
+    "lint": "eslint --fix \"**/*.{js,jsx,ts,tsx}\"",
+    "lint:format": "npm run format && npm run lint"
   },
   "jest": {
     "preset": "jest-expo"
