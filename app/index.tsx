@@ -164,21 +164,21 @@ export default function Index() {
           };
         }
         return habit;
-      })
+      }),
     );
   };
 
   const editHabitName = (habitId: string, newName: string) => {
     setHabits(
       habits.map((habit) =>
-        habit.id === habitId ? { ...habit, name: newName } : habit
-      )
+        habit.id === habitId ? { ...habit, name: newName } : habit,
+      ),
     );
   };
 
   const handleDeleteHabit = (habitId: string) => {
     setHabits((prevHabits) =>
-      prevHabits.filter((habit) => habit.id !== habitId)
+      prevHabits.filter((habit) => habit.id !== habitId),
     );
 
     // もし AsyncStorage を使用している場合は、ストレージからも削除
@@ -186,7 +186,7 @@ export default function Index() {
       if (habitsJson) {
         const storedHabits = JSON.parse(habitsJson);
         const updatedHabits = storedHabits.filter(
-          (habit: any) => habit.id !== habitId
+          (habit: any) => habit.id !== habitId,
         );
         AsyncStorage.setItem('habits', JSON.stringify(updatedHabits));
       }

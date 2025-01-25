@@ -59,7 +59,7 @@ export function WeekView({ habits, onToggle }: WeekViewProps) {
         ...habit,
         completionRate: getCompletionRate(habit.completedDates),
       })),
-    [habits, weekDates]
+    [habits, weekDates],
   );
   const formatWeekRange = () => {
     const start = weekDates[0];
