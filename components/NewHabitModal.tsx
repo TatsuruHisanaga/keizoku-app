@@ -13,7 +13,7 @@ import { useEffect } from 'react';
 import { Box } from '@/components/ui/box';
 import { Center } from '@/components/ui/center';
 import { PartyPopper } from 'lucide-react-native';
-import { Animated, Easing } from 'react-native';
+import { Animated } from 'react-native';
 
 interface NewHabitModalProps {
   isOpen: boolean;
