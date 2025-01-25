@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/icon';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import Animation from './Animation';
 
 interface WeekViewProps {
   habits: {
@@ -98,8 +99,9 @@ export function WeekView({ habits, onToggle }: WeekViewProps) {
       {memoizedHabits.map((habit) => (
         <Box key={habit.id} className="bg-gray-800 rounded-xl px-4 py-2 mb-2">
           <Box className="mb-4">
-            <Box>
+            <Box className="flex flex-row justify-between">
               <Text className="text-white font-medium mb-2">{habit.name}</Text>
+              <Animation streak={1} />
             </Box>
             <Box className="flex flex-row justify-between">
               {weekDates.map((dateObj) => {
