@@ -50,11 +50,11 @@ const alertTextStyle = tva({
     },
     size: {
       '2xs': 'text-2xs',
-      'xs': 'text-xs',
-      'sm': 'text-sm',
-      'md': 'text-base',
-      'lg': 'text-lg',
-      'xl': 'text-xl',
+      xs: 'text-xs',
+      sm: 'text-sm',
+      md: 'text-base',
+      lg: 'text-lg',
+      xl: 'text-xl',
       '2xl': 'text-2xl',
       '3xl': 'text-3xl',
       '4xl': 'text-4xl',
@@ -87,11 +87,11 @@ const alertIconStyle = tva({
   variants: {
     size: {
       '2xs': 'h-3 w-3',
-      'xs': 'h-3.5 w-3.5',
-      'sm': 'h-4 w-4',
-      'md': 'h-[18px] w-[18px]',
-      'lg': 'h-5 w-5',
-      'xl': 'h-6 w-6',
+      xs: 'h-3.5 w-3.5',
+      sm: 'h-4 w-4',
+      md: 'h-[18px] w-[18px]',
+      lg: 'h-5 w-5',
+      xl: 'h-6 w-6',
     },
   },
   parentVariants: {
@@ -140,7 +140,7 @@ const Alert = React.forwardRef<React.ElementRef<typeof UIAlert>, IAlertProps>(
         {...props}
       />
     );
-  }
+  },
 );
 
 type IAlertTextProps = React.ComponentPropsWithoutRef<typeof UIAlert.Text> &
@@ -163,7 +163,7 @@ const AlertText = React.forwardRef<
       highlight,
       ...props
     },
-    ref
+    ref,
   ) => {
     const { action: parentAction } = useStyleContext(SCOPE);
     return (
@@ -186,7 +186,7 @@ const AlertText = React.forwardRef<
         ref={ref}
       />
     );
-  }
+  },
 );
 
 type IAlertIconProps = React.ComponentPropsWithoutRef<typeof UIAlert.Icon> &
