@@ -17,6 +17,7 @@ import { EyeIcon, EyeOffIcon } from '@/components/ui/icon';
 import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { Center } from './ui/center';
+import { Image } from '@/components/ui/image';
 
 const redirectTo = makeRedirectUri();
 console.log({ redirectTo });
@@ -118,7 +119,18 @@ export default function Auth() {
 
   return (
     <VStack className="w-full rounded-md p-4">
-      <Heading className="mb-2">ログイン</Heading>
+      <Center className="mb-8">
+        <Image
+          source={require('../assets/images/icon.png')}
+          alt="Keizoku Logo"
+          style={{ width: 80, height: 80 }}
+          className="mb-4"
+        />
+        <Heading size="xl" className="mb-2">
+          ようこそ
+        </Heading>
+      </Center>
+
       <FormControl className="mb-2">
         <FormControlLabel>
           <FormControlLabelText>メールアドレス</FormControlLabelText>
