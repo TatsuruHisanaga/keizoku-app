@@ -47,6 +47,10 @@ export function HabitItem({
       setError('習慣名を入力してください');
       return;
     }
+    if (editedName.length > 16) {
+      setError('習慣名は16文字以内で入力してください');
+      return;
+    }
     onEdit(editedName);
     setIsEditing(false);
     setIsMenuOpen(false);
@@ -154,16 +158,53 @@ export function HabitItem({
             <Box className="flex flex-row items-center justify-between min-h-[42px]">
               <Box className="flex flex-col justify-center">
                 {isEditing ? (
-                  <Box>
-                    <Input className="w-48">
-                      <InputField
-                        value={editedName}
-                        onChangeText={setEditedName}
-                        placeholder="新しい習慣名を入力"
-                      />
-                    </Input>
+                  <Box className="flex flex-col w-full">
+                    <Box className="flex flex-row items-center justify-between">
+                      <Input className="w-48">
+                        <InputField
+                          value={editedName}
+                          onChangeText={setEditedName}
+                          placeholder="新しい習慣名を入力"
+                        />
+                      </Input>
+                      <Box className="flex flex-row gap-2">
+                        <Button
+                          variant="solid"
+                          size="md"
+                          className="rounded-lg border"
+                          style={{
+                            backgroundColor: '#f0fdf4',
+                            borderColor: '#bbf7d0',
+                          }}
+                          onPress={handleSave}
+                        >
+                          <ButtonText style={{ color: '#4b5563' }}>
+                            保存
+                          </ButtonText>
+                        </Button>
+                        <Button
+                          variant="solid"
+                          size="md"
+                          className="rounded-lg border"
+                          style={{
+                            backgroundColor: '#fef2f2',
+                            borderColor: '#fecaca',
+                          }}
+                          onPress={handleCancel}
+                        >
+                          <ButtonText style={{ color: '#4b5563' }}>
+                            キャンセル
+                          </ButtonText>
+                        </Button>
+                      </Box>
+                    </Box>
                     {error && (
-                      <Text className="text-sm text-red-500 mt-1">{error}</Text>
+                      <Text
+                        style={{ color: '#EF4444' }}
+                        className="text-sm mt-1"
+                      >
+                        {error}
+                      </Text>
                     )}
                   </Box>
                 ) : (
@@ -179,34 +220,7 @@ export function HabitItem({
               </Box>
               <Box className="flex flex-row gap-2">
                 {isEditing ? (
-                  <>
-                    <Button
-                      variant="solid"
-                      size="md"
-                      className="rounded-lg border"
-                      style={{
-                        backgroundColor: '#f0fdf4',
-                        borderColor: '#bbf7d0',
-                      }}
-                      onPress={handleSave}
-                    >
-                      <ButtonText style={{ color: '#4b5563' }}>保存</ButtonText>
-                    </Button>
-                    <Button
-                      variant="solid"
-                      size="md"
-                      className="rounded-lg border"
-                      style={{
-                        backgroundColor: '#fef2f2',
-                        borderColor: '#fecaca',
-                      }}
-                      onPress={handleCancel}
-                    >
-                      <ButtonText style={{ color: '#4b5563' }}>
-                        キャンセル
-                      </ButtonText>
-                    </Button>
-                  </>
+                  <></>
                 ) : isMenuOpen ? (
                   <>
                     <Button
