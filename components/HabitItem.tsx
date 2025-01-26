@@ -156,68 +156,65 @@ export function HabitItem({
             </Box>
           ) : (
             <Box className="flex flex-row items-center justify-between min-h-[42px]">
-              <Box className="flex flex-col justify-center">
-                {isEditing ? (
-                  <Box className="flex flex-col w-full">
-                    <Box className="flex flex-row items-center justify-between">
-                      <Input className="w-48">
+              {isEditing ? (
+                <Box className="flex-1">
+                  <Box className="flex flex-row items-center gap-2">
+                    <Box className="flex-1">
+                      <Input>
                         <InputField
                           value={editedName}
                           onChangeText={setEditedName}
                           placeholder="新しい習慣名を入力"
                         />
                       </Input>
-                      <Box className="flex flex-row gap-2">
-                        <Button
-                          variant="solid"
-                          size="md"
-                          className="rounded-lg border"
-                          style={{
-                            backgroundColor: '#f0fdf4',
-                            borderColor: '#bbf7d0',
-                          }}
-                          onPress={handleSave}
-                        >
-                          <ButtonText style={{ color: '#4b5563' }}>
-                            保存
-                          </ButtonText>
-                        </Button>
-                        <Button
-                          variant="solid"
-                          size="md"
-                          className="rounded-lg border"
-                          style={{
-                            backgroundColor: '#fef2f2',
-                            borderColor: '#fecaca',
-                          }}
-                          onPress={handleCancel}
-                        >
-                          <ButtonText style={{ color: '#4b5563' }}>
-                            キャンセル
-                          </ButtonText>
-                        </Button>
-                      </Box>
                     </Box>
-                    {error && (
-                      <Text
-                        style={{ color: '#EF4444' }}
-                        className="text-sm mt-1"
+                    <Box className="flex flex-row gap-2">
+                      <Button
+                        variant="solid"
+                        size="md"
+                        className="rounded-lg border"
+                        style={{
+                          backgroundColor: '#f0fdf4',
+                          borderColor: '#bbf7d0',
+                        }}
+                        onPress={handleSave}
                       >
-                        {error}
-                      </Text>
-                    )}
+                        <ButtonText style={{ color: '#4b5563' }}>
+                          保存
+                        </ButtonText>
+                      </Button>
+                      <Button
+                        variant="solid"
+                        size="md"
+                        className="rounded-lg border"
+                        style={{
+                          backgroundColor: '#fef2f2',
+                          borderColor: '#fecaca',
+                        }}
+                        onPress={handleCancel}
+                      >
+                        <ButtonText style={{ color: '#4b5563' }}>
+                          キャンセル
+                        </ButtonText>
+                      </Button>
+                    </Box>
                   </Box>
-                ) : (
-                  <>
-                    <Heading className="text-lg font-medium text-gray-900">
-                      {habit.name}
-                    </Heading>
-                    <Text className="text-sm text-gray-500">
-                      累計{habit.totalDays}日達成 / 最高連続{habit.streak}日
+                  {error && (
+                    <Text style={{ color: '#EF4444' }} className="text-sm mt-1">
+                      {error}
                     </Text>
-                  </>
-                )}
-              </Box>
+                  )}
+                </Box>
+              ) : (
+                <Box className="flex flex-col justify-center">
+                  <Heading className="text-lg font-medium text-gray-900">
+                    {habit.name}
+                  </Heading>
+                  <Text className="text-sm text-gray-500">
+                    累計{habit.totalDays}日達成 / 最高連続{habit.streak}日
+                  </Text>
+                </Box>
+              )}
               <Box className="flex flex-row gap-2">
                 {isEditing ? (
                   <></>
