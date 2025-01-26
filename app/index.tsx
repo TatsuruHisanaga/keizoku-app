@@ -81,31 +81,33 @@ export default function Index() {
   });
 
   const addHabit = () => {
-    if (newHabit.trim()) {
-      if (newHabit.length > 16) {
-        setShowError(true);
-        return;
-      }
-      setShowError(false);
-      if (habits.length >= 3) {
-        alert('習慣は3個までしか追加できません');
-        return;
-      }
-      setHabits([
-        ...habits,
-        {
-          id: Math.random().toString(36).substr(2, 9),
-          name: newHabit,
-          streak: 0,
-          completedDates: [],
-        },
-      ]);
-      setNewHabitModalData({
-        isOpen: true,
-        habitName: newHabit,
-      });
-      setNewHabit('');
+    if (!newHabit.trim()) {
+      setShowError(true);
+      return;
     }
+    if (newHabit.length > 16) {
+      setShowError(true);
+      return;
+    }
+    setShowError(false);
+    if (habits.length >= 3) {
+      alert('習慣は3個までしか追加できません');
+      return;
+    }
+    setHabits([
+      ...habits,
+      {
+        id: Math.random().toString(36).substr(2, 9),
+        name: newHabit,
+        streak: 0,
+        completedDates: [],
+      },
+    ]);
+    setNewHabitModalData({
+      isOpen: true,
+      habitName: newHabit,
+    });
+    setNewHabit('');
   };
 
   const toggleComplete = (habitId: string, date: string) => {
@@ -193,7 +195,9 @@ export default function Index() {
               </Input>
               {showError && (
                 <Text size="sm" style={{ color: '#EF4444' }} className="mt-1">
-                  習慣名は16文字以内で入力してください
+                  {!newHabit.trim()
+                    ? '習慣名を入力してください'
+                    : '習慣名は16文字以内で入力してください'}
                 </Text>
               )}
             </Box>
