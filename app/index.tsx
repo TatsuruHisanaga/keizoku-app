@@ -1,20 +1,17 @@
 import Auth from '@/components/Auth';
 import { supabase } from '@/lib/supabase';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { VStack } from '@/components/ui/vstack';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { AddIcon } from '@/components/ui/icon';
 import AchievementModal from '../components/AchievementModal';
 import { Box } from '@/components/ui/box';
-import { Text } from '@/components/ui/text';
-import { Heading } from '@/components/ui/heading';
 import { Input, InputField } from '@/components/ui/input';
 import { HabitItem } from '@/components/HabitItem';
 import { WeekView } from '@/components/WeekView';
 import { HStack } from '@/components/ui/hstack';
 import { Audio } from 'expo-av';
-import LottieView from 'lottie-react-native';
 import NewHabitModal from '@/components/NewHabitModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -30,23 +27,6 @@ export default function Index() {
       setSession(session);
     });
   }, []);
-
-  const [currentWeekStart, setCurrentWeekStart] = useState(() => {
-    const now = new Date();
-    const day = now.getDay();
-    const diff = now.getDate() - day + (day === 0 ? -6 : 1); // 月曜日を週の始めに設定
-    return new Date(now.setDate(diff));
-  });
-
-  const getDatesForWeek = () => {
-    const dates = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(currentWeekStart);
-      date.setDate(currentWeekStart.getDate() + i);
-      dates.push(date);
-    }
-    return dates;
-  };
 
   function getMaxConsecutiveDays(dates: string[]): number {
     const sorted = [...dates].sort();
@@ -70,17 +50,6 @@ export default function Index() {
 
     return maxStreak;
   }
-
-  const weekDates = getDatesForWeek();
-  const today = new Date();
-
-  const formatDateRange = () => {
-    const start = weekDates[0];
-    const end = weekDates[6];
-    return `${start.toLocaleDateString('ja-JP', {
-      month: 'long',
-    })} ${start.getDate()} - ${end.getDate()}`;
-  };
 
   const [habits, setHabits] = useState<
     {
