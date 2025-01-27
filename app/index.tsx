@@ -115,11 +115,6 @@ export default function Index() {
 
   // 習慣の追加
   const addHabit = async () => {
-    if (newHabit.trim()) {
-      if (habits.length >= 3) {
-        alert('習慣は3個までしか追加できません');
-        return;
-      }
     if (!newHabit.trim()) {
       setShowError(true);
       return;
@@ -131,54 +126,40 @@ export default function Index() {
     if (habits.some((habit) => habit.name === newHabit.trim())) {
       setShowError(true);
       return;
-    
-      try {
-        const { data, error } = await supabase
-          .from('habits')
-          .insert([
-            {
-              name: newHabit,
-              streak: 0,
-              completed_dates: [],
-              user_id: session?.user?.id,
-            },
-          ])
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        if (data) {
-          setHabits([...habits, data]);
-          setNewHabitModalData({
-            isOpen: true,
-            habitName: newHabit,
-          });
-          setNewHabit('');
-        }
-      } catch (error) {
-        console.error('Error adding habit:', error);
-      }
     }
-    setShowError(false);
     if (habits.length >= 3) {
       alert('習慣は3個までしか追加できません');
       return;
     }
-    setHabits([
-      ...habits,
-      {
-        id: Math.random().toString(36).substr(2, 9),
-        name: newHabit,
-        streak: 0,
-        completedDates: [],
-      },
-    ]);
-    setNewHabitModalData({
-      isOpen: true,
-      habitName: newHabit,
-    });
-    setNewHabit('');
+
+    try {
+      const { data, error } = await supabase
+        .from('habits')
+        .insert([
+          {
+            name: newHabit,
+            streak: 0,
+            completed_dates: [],
+            user_id: session?.user?.id,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setHabits([...habits, data]);
+        setNewHabitModalData({
+          isOpen: true,
+          habitName: newHabit,
+        });
+        setNewHabit('');
+      }
+    } catch (error) {
+      console.error('Error adding habit:', error);
+    }
+    setShowError(false);
   };
 
   // 習慣の完了状態の切り替え
