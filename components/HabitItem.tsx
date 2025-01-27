@@ -20,6 +20,12 @@ export interface HabitItemProps {
     completedDates: string[];
     totalDays: number;
   };
+  allHabits: {
+    id: string;
+    name: string;
+    streak: number;
+    completedDates: string[];
+  }[];
   onToggle: (date: string) => void;
   onEdit: (newName: string) => void;
   onDelete: () => void;
@@ -27,6 +33,7 @@ export interface HabitItemProps {
 
 export function HabitItem({
   habit,
+  allHabits,
   onToggle,
   onEdit,
   onDelete,
@@ -49,6 +56,14 @@ export function HabitItem({
     }
     if (editedName.length > 16) {
       setError('習慣名は16文字以内で入力してください');
+      return;
+    }
+    const isDuplicate = allHabits.some(
+      (h) => h.id !== habit.id && h.name === editedName.trim(),
+    );
+
+    if (isDuplicate) {
+      setError('同じ名前の習慣が既に存在します');
       return;
     }
     onEdit(editedName);

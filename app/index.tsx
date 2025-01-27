@@ -89,6 +89,10 @@ export default function Index() {
       setShowError(true);
       return;
     }
+    if (habits.some((habit) => habit.name === newHabit.trim())) {
+      setShowError(true);
+      return;
+    }
     setShowError(false);
     if (habits.length >= 3) {
       alert('習慣は3個までしか追加できません');
@@ -197,7 +201,9 @@ export default function Index() {
                 <Text size="sm" style={{ color: '#EF4444' }} className="mt-1">
                   {!newHabit.trim()
                     ? '習慣名を入力してください'
-                    : '習慣名は16文字以内で入力してください'}
+                    : newHabit.length > 16
+                      ? '習慣名は16文字以内で入力してください'
+                      : '同じ名前の習慣が既に存在します'}
                 </Text>
               )}
             </Box>
@@ -215,6 +221,7 @@ export default function Index() {
                   ...habit,
                   totalDays: habit.completedDates.length,
                 }}
+                allHabits={habits}
                 onToggle={(date) => toggleComplete(habit.id, date)}
                 onEdit={(newName) => editHabitName(habit.id, newName)}
                 onDelete={() => handleDeleteHabit(habit.id)}
