@@ -1,4 +1,4 @@
-import { Home } from 'lucide-react-native';
+import { Home, UserRoundCog } from 'lucide-react-native';
 import { Tabs } from 'expo-router';
 import { Icon } from '@/components/ui/icon';
 
@@ -16,7 +16,9 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: '設定',
-          tabBarIcon: ({ color }) => <Icon as={Home} size="lg" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <Icon as={UserRoundCog} size="lg" color={color} />
+          ),
         }}
       />
     </Tabs>
