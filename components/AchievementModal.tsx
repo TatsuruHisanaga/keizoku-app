@@ -9,7 +9,6 @@ import {
   ModalFooter,
 } from '@/components/ui/modal';
 import { Button, ButtonText } from '@/components/ui/button';
-import { useState } from 'react';
 import { Box } from '@/components/ui/box';
 import { Center } from '@/components/ui/center';
 import { Trophy } from 'lucide-react-native';

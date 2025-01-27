@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Box } from './ui/box';
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  CalendarDaysIcon,
-} from '@/components/ui/icon';
+import { ChevronLeftIcon, ChevronRightIcon } from '@/components/ui/icon';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 
@@ -59,7 +55,7 @@ export function WeekView({ habits, onToggle }: WeekViewProps) {
         ...habit,
         completionRate: getCompletionRate(habit.completedDates),
       })),
-    [habits, weekDates]
+    [habits, weekDates],
   );
   const formatWeekRange = () => {
     const start = weekDates[0];

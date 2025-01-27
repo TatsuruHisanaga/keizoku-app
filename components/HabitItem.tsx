@@ -22,6 +22,12 @@ export interface HabitItemProps {
     completedDates: string[];
     totalDays: number;
   };
+  allHabits: {
+    id: string;
+    name: string;
+    streak: number;
+    completedDates: string[];
+  }[];
   onToggle: (date: string) => void;
   onEdit: (newName: string) => void;
   onDelete: () => void;
@@ -29,6 +35,7 @@ export interface HabitItemProps {
 
 export function HabitItem({
   habit,
+  allHabits,
   onToggle,
   onEdit,
   onDelete,
@@ -60,6 +67,19 @@ export function HabitItem({
         .eq('user_id', user?.id);
 
       if (error) throw error;
+        
+      if (editedName.length > 16) {
+        setError('習慣名は16文字以内で入力してください');
+        return;
+      }
+      const isDuplicate = allHabits.some(
+        (h) => h.id !== habit.id && h.name === editedName.trim(),
+      );
+
+      if (isDuplicate) {
+        setError('同じ名前の習慣が既に存在します');
+        return;
+      }
 
       onEdit(editedName);
       setIsEditing(false);
@@ -182,61 +202,68 @@ export function HabitItem({
             </Box>
           ) : (
             <Box className="flex flex-row items-center justify-between min-h-[42px]">
-              <Box className="flex flex-col justify-center">
-                {isEditing ? (
-                  <Box>
-                    <Input className="w-48">
-                      <InputField
-                        value={editedName}
-                        onChangeText={setEditedName}
-                        placeholder="新しい習慣名を入力"
-                      />
-                    </Input>
-                    {error && (
-                      <Text className="text-sm text-red-500 mt-1">{error}</Text>
-                    )}
+              {isEditing ? (
+                <Box className="flex-1">
+                  <Box className="flex flex-row items-center gap-2">
+                    <Box className="flex-1">
+                      <Input isInvalid={!!error}>
+                        <InputField
+                          value={editedName}
+                          onChangeText={setEditedName}
+                          placeholder="新しい習慣名を入力"
+                        />
+                      </Input>
+                    </Box>
+                    <Box className="flex flex-row gap-2">
+                      <Button
+                        variant="solid"
+                        size="md"
+                        className="rounded-lg border"
+                        style={{
+                          backgroundColor: '#f0fdf4',
+                          borderColor: '#bbf7d0',
+                        }}
+                        onPress={handleSave}
+                      >
+                        <ButtonText style={{ color: '#4b5563' }}>
+                          保存
+                        </ButtonText>
+                      </Button>
+                      <Button
+                        variant="solid"
+                        size="md"
+                        className="rounded-lg border"
+                        style={{
+                          backgroundColor: '#fef2f2',
+                          borderColor: '#fecaca',
+                        }}
+                        onPress={handleCancel}
+                      >
+                        <ButtonText style={{ color: '#4b5563' }}>
+                          キャンセル
+                        </ButtonText>
+                      </Button>
+                    </Box>
                   </Box>
-                ) : (
-                  <>
-                    <Heading className="text-lg font-medium text-gray-900">
-                      {habit.name}
-                    </Heading>
-                    <Text className="text-sm text-gray-500">
-                      累計{habit.totalDays}日達成 / 最高連続{habit.streak}日
+                  {error && (
+                    <Text style={{ color: '#EF4444' }} className="text-sm mt-1">
+                      {error}
                     </Text>
-                  </>
-                )}
-              </Box>
+                  )}
+                </Box>
+              ) : (
+                <Box className="flex flex-col justify-center">
+                  <Heading className="text-lg font-medium text-gray-900">
+                    {habit.name}
+                  </Heading>
+                  <Text className="text-sm text-gray-500">
+                    累計{habit.totalDays}日達成 / 最高連続{habit.streak}日
+                  </Text>
+                </Box>
+              )}
               <Box className="flex flex-row gap-2">
                 {isEditing ? (
-                  <>
-                    <Button
-                      variant="solid"
-                      size="md"
-                      className="rounded-lg border"
-                      style={{
-                        backgroundColor: '#f0fdf4',
-                        borderColor: '#bbf7d0',
-                      }}
-                      onPress={handleSave}
-                    >
-                      <ButtonText style={{ color: '#4b5563' }}>保存</ButtonText>
-                    </Button>
-                    <Button
-                      variant="solid"
-                      size="md"
-                      className="rounded-lg border"
-                      style={{
-                        backgroundColor: '#fef2f2',
-                        borderColor: '#fecaca',
-                      }}
-                      onPress={handleCancel}
-                    >
-                      <ButtonText style={{ color: '#4b5563' }}>
-                        キャンセル
-                      </ButtonText>
-                    </Button>
-                  </>
+                  <></>
                 ) : isMenuOpen ? (
                   <>
                     <Button

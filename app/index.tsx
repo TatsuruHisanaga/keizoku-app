@@ -1,22 +1,20 @@
 import Auth from '@/components/Auth';
 import { supabase } from '@/lib/supabase';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { VStack } from '@/components/ui/vstack';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { AddIcon } from '@/components/ui/icon';
 import AchievementModal from '../components/AchievementModal';
 import { Box } from '@/components/ui/box';
-import { Text } from '@/components/ui/text';
-import { Heading } from '@/components/ui/heading';
 import { Input, InputField } from '@/components/ui/input';
 import { HabitItem } from '@/components/HabitItem';
 import { WeekView } from '@/components/WeekView';
 import { HStack } from '@/components/ui/hstack';
 import { Audio } from 'expo-av';
-import LottieView from 'lottie-react-native';
 import NewHabitModal from '@/components/NewHabitModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Text } from '@/components/ui/text';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -30,23 +28,6 @@ export default function Index() {
       setSession(session);
     });
   }, []);
-
-  const [currentWeekStart, setCurrentWeekStart] = useState(() => {
-    const now = new Date();
-    const day = now.getDay();
-    const diff = now.getDate() - day + (day === 0 ? -6 : 1); // 月曜日を週の始めに設定
-    return new Date(now.setDate(diff));
-  });
-
-  const getDatesForWeek = () => {
-    const dates = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(currentWeekStart);
-      date.setDate(currentWeekStart.getDate() + i);
-      dates.push(date);
-    }
-    return dates;
-  };
 
   function getMaxConsecutiveDays(dates: string[]): number {
     const sorted = [...dates].sort();
@@ -71,17 +52,6 @@ export default function Index() {
     return maxStreak;
   }
 
-  const weekDates = getDatesForWeek();
-  const today = new Date();
-
-  const formatDateRange = () => {
-    const start = weekDates[0];
-    const end = weekDates[6];
-    return `${start.toLocaleDateString('ja-JP', {
-      month: 'long',
-    })} ${start.getDate()} - ${end.getDate()}`;
-  };
-
   const [habits, setHabits] = useState<
     {
       id: string;
@@ -92,6 +62,7 @@ export default function Index() {
     }[]
   >([]);
   const [newHabit, setNewHabit] = useState('');
+  const [showError, setShowError] = useState(false);
   const [newHabitModalData, setNewHabitModalData] = useState<{
     isOpen: boolean;
     habitName: string;
@@ -149,7 +120,18 @@ export default function Index() {
         alert('習慣は3個までしか追加できません');
         return;
       }
-
+    if (!newHabit.trim()) {
+      setShowError(true);
+      return;
+    }
+    if (newHabit.length > 16) {
+      setShowError(true);
+      return;
+    }
+    if (habits.some((habit) => habit.name === newHabit.trim())) {
+      setShowError(true);
+      return;
+    
       try {
         const { data, error } = await supabase
           .from('habits')
@@ -178,6 +160,25 @@ export default function Index() {
         console.error('Error adding habit:', error);
       }
     }
+    setShowError(false);
+    if (habits.length >= 3) {
+      alert('習慣は3個までしか追加できません');
+      return;
+    }
+    setHabits([
+      ...habits,
+      {
+        id: Math.random().toString(36).substr(2, 9),
+        name: newHabit,
+        streak: 0,
+        completedDates: [],
+      },
+    ]);
+    setNewHabitModalData({
+      isOpen: true,
+      habitName: newHabit,
+    });
+    setNewHabit('');
   };
 
   // 習慣の完了状態の切り替え
@@ -275,20 +276,33 @@ export default function Index() {
       {session && session.user ? (
         <VStack>
           <HStack space="md">
-            <Input
-              variant="outline"
-              size="lg"
-              isDisabled={false}
-              isInvalid={false}
-              isReadOnly={false}
-              className="flex-1"
-            >
-              <InputField
-                placeholder="新しい習慣を入力..."
-                value={newHabit}
-                onChangeText={(text) => setNewHabit(text)}
-              />
-            </Input>
+            <Box className="flex-1">
+              <Input
+                variant="outline"
+                size="lg"
+                isDisabled={false}
+                isInvalid={showError}
+                isReadOnly={false}
+              >
+                <InputField
+                  placeholder="新しい習慣を入力..."
+                  value={newHabit}
+                  onChangeText={(text) => {
+                    setNewHabit(text);
+                    setShowError(false);
+                  }}
+                />
+              </Input>
+              {showError && (
+                <Text size="sm" style={{ color: '#EF4444' }} className="mt-1">
+                  {!newHabit.trim()
+                    ? '習慣名を入力してください'
+                    : newHabit.length > 16
+                      ? '習慣名は16文字以内で入力してください'
+                      : '同じ名前の習慣が既に存在します'}
+                </Text>
+              )}
+            </Box>
             <Button size="lg" onPress={addHabit}>
               <ButtonIcon as={AddIcon} />
               <ButtonText>追加</ButtonText>
@@ -303,6 +317,7 @@ export default function Index() {
                   ...habit,
                   totalDays: habit.completedDates?.length,
                 }}
+                allHabits={habits}
                 onToggle={(date) => toggleComplete(habit.id, date)}
                 onEdit={(newName) => editHabitName(habit.id, newName)}
                 onDelete={() => handleDeleteHabit(habit.id)}
