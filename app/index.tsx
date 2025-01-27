@@ -14,6 +14,7 @@ import { HStack } from '@/components/ui/hstack';
 import { Audio } from 'expo-av';
 import NewHabitModal from '@/components/NewHabitModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Text } from '@/components/ui/text';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -60,6 +61,7 @@ export default function Index() {
     }[]
   >([]);
   const [newHabit, setNewHabit] = useState('');
+  const [showError, setShowError] = useState(false);
   const [newHabitModalData, setNewHabitModalData] = useState<{
     isOpen: boolean;
     habitName: string;
@@ -79,26 +81,37 @@ export default function Index() {
   });
 
   const addHabit = () => {
-    if (newHabit.trim()) {
-      if (habits.length >= 3) {
-        alert('習慣は3個までしか追加できません');
-        return;
-      }
-      setHabits([
-        ...habits,
-        {
-          id: Math.random().toString(36).substr(2, 9),
-          name: newHabit,
-          streak: 0,
-          completedDates: [],
-        },
-      ]);
-      setNewHabitModalData({
-        isOpen: true,
-        habitName: newHabit,
-      });
-      setNewHabit('');
+    if (!newHabit.trim()) {
+      setShowError(true);
+      return;
     }
+    if (newHabit.length > 16) {
+      setShowError(true);
+      return;
+    }
+    if (habits.some((habit) => habit.name === newHabit.trim())) {
+      setShowError(true);
+      return;
+    }
+    setShowError(false);
+    if (habits.length >= 3) {
+      alert('習慣は3個までしか追加できません');
+      return;
+    }
+    setHabits([
+      ...habits,
+      {
+        id: Math.random().toString(36).substr(2, 9),
+        name: newHabit,
+        streak: 0,
+        completedDates: [],
+      },
+    ]);
+    setNewHabitModalData({
+      isOpen: true,
+      habitName: newHabit,
+    });
+    setNewHabit('');
   };
 
   const toggleComplete = (habitId: string, date: string) => {
@@ -167,20 +180,33 @@ export default function Index() {
       {session && session.user ? (
         <VStack>
           <HStack space="md">
-            <Input
-              variant="outline"
-              size="lg"
-              isDisabled={false}
-              isInvalid={false}
-              isReadOnly={false}
-              className="flex-1"
-            >
-              <InputField
-                placeholder="新しい習慣を入力..."
-                value={newHabit}
-                onChangeText={(text) => setNewHabit(text)}
-              />
-            </Input>
+            <Box className="flex-1">
+              <Input
+                variant="outline"
+                size="lg"
+                isDisabled={false}
+                isInvalid={showError}
+                isReadOnly={false}
+              >
+                <InputField
+                  placeholder="新しい習慣を入力..."
+                  value={newHabit}
+                  onChangeText={(text) => {
+                    setNewHabit(text);
+                    setShowError(false);
+                  }}
+                />
+              </Input>
+              {showError && (
+                <Text size="sm" style={{ color: '#EF4444' }} className="mt-1">
+                  {!newHabit.trim()
+                    ? '習慣名を入力してください'
+                    : newHabit.length > 16
+                      ? '習慣名は16文字以内で入力してください'
+                      : '同じ名前の習慣が既に存在します'}
+                </Text>
+              )}
+            </Box>
             <Button size="lg" onPress={addHabit}>
               <ButtonIcon as={AddIcon} />
               <ButtonText>追加</ButtonText>
@@ -195,6 +221,7 @@ export default function Index() {
                   ...habit,
                   totalDays: habit.completedDates.length,
                 }}
+                allHabits={habits}
                 onToggle={(date) => toggleComplete(habit.id, date)}
                 onEdit={(newName) => editHabitName(habit.id, newName)}
                 onDelete={() => handleDeleteHabit(habit.id)}
