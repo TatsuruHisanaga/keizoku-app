@@ -175,7 +175,7 @@ export function HabitItem({
                 <Box className="flex-1">
                   <Box className="flex flex-row items-center gap-2">
                     <Box className="flex-1">
-                      <Input>
+                      <Input isInvalid={!!error}>
                         <InputField
                           value={editedName}
                           onChangeText={setEditedName}
