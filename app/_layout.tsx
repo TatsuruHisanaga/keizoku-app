@@ -9,7 +9,7 @@ export default function RootLayout() {
     <GluestackUIProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         </Stack>
       </GestureHandlerRootView>
     </GluestackUIProvider>
