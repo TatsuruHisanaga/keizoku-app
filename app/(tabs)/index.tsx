@@ -5,7 +5,7 @@ import { Session } from '@supabase/supabase-js';
 import { VStack } from '@/components/ui/vstack';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { AddIcon } from '@/components/ui/icon';
-import AchievementModal from '../components/AchievementModal';
+import AchievementModal from '../../components/AchievementModal';
 import { Box } from '@/components/ui/box';
 import { Input, InputField } from '@/components/ui/input';
 import { HabitItem } from '@/components/HabitItem';
@@ -116,7 +116,7 @@ export default function Index() {
 
   const toggleComplete = (habitId: string, date: string) => {
     const playSound = async () => {
-      await Audio.Sound.createAsync(require('../assets/sounds/click.mp3'), {
+      await Audio.Sound.createAsync(require('../../assets/sounds/click.mp3'), {
         shouldPlay: true,
       });
     };
