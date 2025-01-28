@@ -291,19 +291,30 @@ export default function Index() {
           </HStack>
 
           <Box className="mt-4 gap-4">
-            {habits.map((habit) => (
-              <HabitItem
-                key={habit.id}
-                habit={{
-                  ...habit,
-                  totalDays: habit.completedDates?.length,
-                }}
-                allHabits={habits}
-                onToggle={(date) => toggleComplete(habit.id, date)}
-                onEdit={(newName) => editHabitName(habit.id, newName)}
-                onDelete={() => handleDeleteHabit(habit.id)}
-              />
-            ))}
+            {habits.length === 0 ? (
+              <VStack space="md" className="items-center py-8">
+                <Text size="lg" className="text-center text-gray-600">
+                  まだ習慣がありません
+                </Text>
+                <Text size="md" className="text-center text-gray-500">
+                  新しい習慣を登録して、継続の力を実感しましょう！
+                </Text>
+              </VStack>
+            ) : (
+              habits.map((habit) => (
+                <HabitItem
+                  key={habit.id}
+                  habit={{
+                    ...habit,
+                    totalDays: habit.completedDates.length,
+                  }}
+                  allHabits={habits}
+                  onToggle={(date) => toggleComplete(habit.id, date)}
+                  onEdit={(newName) => editHabitName(habit.id, newName)}
+                  onDelete={() => handleDeleteHabit(habit.id)}
+                />
+              ))
+            )}
           </Box>
 
           <AchievementModal
