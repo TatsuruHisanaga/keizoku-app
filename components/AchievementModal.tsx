@@ -31,11 +31,47 @@ export default function AchievementModal({
   const confettiRef = useRef<LottieView | null>(null);
 
   useEffect(() => {
-    if (isOpen && confettiRef.current) {
-      confettiRef.current.reset();
-      confettiRef.current.play();
+    if (isOpen) {
+      if (confettiRef.current) {
+        confettiRef.current.reset();
+      }
+      
+      const timer = setTimeout(() => {
+        if (confettiRef.current) {
+          confettiRef.current.reset();
+          confettiRef.current.play(0);
+        }
+      }, 200);
+      
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
+
+  const renderLottieView = () => {
+    if (!isOpen) return null;
+    
+    return (
+      <LottieView
+        ref={confettiRef}
+        source={require('@/assets/confetti.json')}
+        autoPlay={false}
+        loop={false}
+        progress={0}
+        resizeMode="cover"
+        style={{
+          position: 'absolute',
+          zIndex: 999,
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: '100%',
+          width: '100%',
+          pointerEvents: 'none',
+        }}
+      />
+    );
+  };
 
   return (
     <Center>
@@ -74,24 +110,7 @@ export default function AchievementModal({
             </Box>
           </ModalFooter>
         </ModalContent>
-        <LottieView
-          ref={confettiRef}
-          source={require('@/assets/confetti.json')}
-          autoPlay={false}
-          loop={false}
-          resizeMode="cover"
-          style={{
-            position: 'absolute',
-            zIndex: 999,
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: '100%',
-            width: '100%',
-            pointerEvents: 'none',
-          }}
-        />
+        {renderLottieView()}
       </Modal>
     </Center>
   );
