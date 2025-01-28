@@ -344,11 +344,9 @@ export default function Index() {
           />
 
           {/* 週間ビュー */}
-          {habits.length > 0 && (
-            <Box className="mt-8">
-              <WeekView habits={habits} onToggle={toggleComplete} />
-            </Box>
-          )}
+          <Box className="mt-8">
+            <WeekView habits={habits} onToggle={toggleComplete} />
+          </Box>
         </VStack>
       ) : (
         <Auth />
