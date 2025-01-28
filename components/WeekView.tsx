@@ -91,42 +91,53 @@ export function WeekView({ habits, onToggle }: WeekViewProps) {
           <ButtonIcon as={ChevronRightIcon} />
         </Button>
       </Box>
-      {memoizedHabits.map((habit) => (
-        <Box key={habit.id} className="bg-gray-800 rounded-xl px-4 py-2 mb-2">
-          <Box className="mb-4">
-            <Box>
-              <Text className="text-white font-medium mb-2">{habit.name}</Text>
-            </Box>
-            <Box className="flex flex-row justify-between">
-              {weekDates.map((dateObj) => {
-                const dateStr = dateObj.toISOString().split('T')[0];
-                const completedDates = habit.completedDates || [];
-                const isCompleted = completedDates.includes(dateStr);
-                const isToday = dateStr === today;
 
-                return (
-                  <Button
-                    key={dateStr}
-                    onPress={() => onToggle(habit.id, dateStr)}
-                    className={`p-0 w-10 h-10 rounded-lg
-                      ${isCompleted ? 'bg-teal-500' : 'bg-gray-700'} 
-                      ${isToday ? 'border-2 border-teal-300' : ''}
-                    `}
-                  >
-                    <ButtonText
-                      className={`font-semibold
-                        ${isCompleted ? 'text-white' : 'text-gray-400'}
+      {memoizedHabits.length === 0 ? (
+        <Box className="bg-gray-800 rounded-xl p-6">
+          <Text className="text-gray-400 text-center">
+            まだ習慣が登録されていません
+          </Text>
+        </Box>
+      ) : (
+        memoizedHabits.map((habit) => (
+          <Box key={habit.id} className="bg-gray-800 rounded-xl px-4 py-2 mb-2">
+            <Box className="mb-4">
+              <Box>
+                <Text className="text-white font-medium mb-2">
+                  {habit.name}
+                </Text>
+              </Box>
+              <Box className="flex flex-row justify-between">
+                {weekDates.map((dateObj) => {
+                  const dateStr = dateObj.toISOString().split('T')[0];
+                  const completedDates = habit.completedDates || [];
+                  const isCompleted = completedDates.includes(dateStr);
+                  const isToday = dateStr === today;
+
+                  return (
+                    <Button
+                      key={dateStr}
+                      onPress={() => onToggle(habit.id, dateStr)}
+                      className={`p-0 w-10 h-10 rounded-lg
+                        ${isCompleted ? 'bg-teal-500' : 'bg-gray-700'} 
+                        ${isToday ? 'border-2 border-teal-300' : ''}
                       `}
                     >
-                      {dateObj.getDate().toString()}
-                    </ButtonText>
-                  </Button>
-                );
-              })}
+                      <ButtonText
+                        className={`font-semibold
+                          ${isCompleted ? 'text-white' : 'text-gray-400'}
+                        `}
+                      >
+                        {dateObj.getDate().toString()}
+                      </ButtonText>
+                    </Button>
+                  );
+                })}
+              </Box>
             </Box>
           </Box>
-        </Box>
-      ))}
+        ))
+      )}
     </Box>
   );
 }
