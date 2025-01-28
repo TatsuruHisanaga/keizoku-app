@@ -58,6 +58,7 @@ export default function Index() {
       name: string;
       streak: number;
       completedDates: string[];
+      totalDays: number;
     }[]
   >([]);
   const [newHabit, setNewHabit] = useState('');
@@ -80,7 +81,40 @@ export default function Index() {
     habitName: '',
   });
 
-  const addHabit = () => {
+  // habitデータの取得
+  useEffect(() => {
+    if (session?.user) {
+      fetchHabits();
+    }
+  }, [session]);
+
+  const fetchHabits = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('habits')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      if (data) {
+        // データの形式を変換し、completed_datesがnullの場合は空配列を設定
+        const formattedData = data.map((habit) => ({
+          id: habit.id,
+          name: habit.name,
+          streak: habit.streak || 0,
+          completedDates: habit.completed_dates || [],
+          totalDays: habit.total_days || 0,
+        }));
+        setHabits(formattedData);
+      }
+    } catch (error) {
+      console.error('Error fetching habits:', error);
+    }
+  };
+
+  // 習慣の追加
+  const addHabit = async () => {
     if (!newHabit.trim()) {
       setShowError(true);
       return;
@@ -98,81 +132,133 @@ export default function Index() {
       alert('習慣は3個までしか追加できません');
       return;
     }
-    setHabits([
-      ...habits,
-      {
-        id: Math.random().toString(36).substr(2, 9),
-        name: newHabit,
-        streak: 0,
-        completedDates: [],
-      },
-    ]);
-    setNewHabitModalData({
-      isOpen: true,
-      habitName: newHabit,
-    });
-    setNewHabit('');
-  };
 
-  const toggleComplete = (habitId: string, date: string) => {
-    const playSound = async () => {
-      await Audio.Sound.createAsync(require('../../assets/sounds/click.mp3'), {
-        shouldPlay: true,
-      });
-    };
-    setHabits(
-      habits.map((habit) => {
-        if (habit.id === habitId) {
-          const isCompleted = habit.completedDates.includes(date);
-          const completedDates = isCompleted
-            ? habit.completedDates.filter((d) => d !== date)
-            : [...habit.completedDates, date];
+    try {
+      const { data, error } = await supabase
+        .from('habits')
+        .insert([
+          {
+            name: newHabit,
+            streak: 0,
+            completed_dates: [],
+            user_id: session?.user?.id,
+          },
+        ])
+        .select()
+        .single();
 
-          const streak = completedDates.length;
+      if (error) throw error;
 
-          if (!isCompleted && streak > 0) {
-            playSound();
-            setAchievementData({
-              isOpen: true,
-              streak,
-              habitName: habit.name,
-            });
-          }
-          const newMaxStreak = getMaxConsecutiveDays(completedDates);
-          return {
-            ...habit,
-            completedDates,
-            streak: newMaxStreak,
-          };
-        }
-        return habit;
-      }),
-    );
-  };
-
-  const editHabitName = (habitId: string, newName: string) => {
-    setHabits(
-      habits.map((habit) =>
-        habit.id === habitId ? { ...habit, name: newName } : habit,
-      ),
-    );
-  };
-
-  const handleDeleteHabit = (habitId: string) => {
-    setHabits((prevHabits) =>
-      prevHabits.filter((habit) => habit.id !== habitId),
-    );
-
-    // もし AsyncStorage を使用している場合は、ストレージからも削除
-    AsyncStorage.getItem('habits').then((habitsJson) => {
-      if (habitsJson) {
-        const storedHabits = JSON.parse(habitsJson);
-        const updatedHabits = storedHabits.filter(
-          (habit: any) => habit.id !== habitId,
-        );
-        AsyncStorage.setItem('habits', JSON.stringify(updatedHabits));
+      if (data) {
+        setHabits([...habits, data]);
+        setNewHabitModalData({
+          isOpen: true,
+          habitName: newHabit,
+        });
+        setNewHabit('');
       }
-    });
+    } catch (error) {
+      console.error('Error adding habit:', error);
+    }
+    setShowError(false);
+  };
+
+  // 習慣の完了状態の切り替え
+  const toggleComplete = async (habitId: string, date: string) => {
+    try {
+      const habit = habits.find((h) => h.id === habitId);
+      if (!habit) return;
+
+      // completedDatesが未定義の場合は空配列を使用
+      const completedDates = habit.completedDates || [];
+      const isCompleted = completedDates.includes(date);
+      const updatedCompletedDates = isCompleted
+        ? completedDates.filter((d) => d !== date)
+        : [...completedDates, date];
+
+      const streak = getMaxConsecutiveDays(updatedCompletedDates);
+
+      const { error } = await supabase
+        .from('habits')
+        .update({
+          completed_dates: updatedCompletedDates,
+          streak,
+          total_days: updatedCompletedDates.length,
+        })
+        .eq('id', habitId);
+
+      if (error) throw error;
+
+      // UI更新とサウンド再生
+      const playSound = async () => {
+        await Audio.Sound.createAsync(
+          require('../../assets/sounds/click.mp3'),
+          {
+            shouldPlay: true,
+          },
+        );
+      };
+
+      setHabits(
+        habits.map((h) => {
+          if (h.id === habitId) {
+            if (!isCompleted && updatedCompletedDates.length > 0) {
+              playSound();
+              setAchievementData({
+                isOpen: true,
+                streak: updatedCompletedDates.length,
+                habitName: h.name,
+              });
+            }
+            return {
+              ...h,
+              completedDates: updatedCompletedDates,
+              streak,
+              totalDays: updatedCompletedDates.length,
+            };
+          }
+          return h;
+        }),
+      );
+    } catch (error) {
+      console.error('Error toggling habit:', error);
+    }
+  };
+
+  const editHabitName = async (habitId: string, newName: string) => {
+    try {
+      const { error } = await supabase
+        .from('habits')
+        .update({ name: newName })
+        .eq('id', habitId);
+
+      if (error) throw error;
+
+      setHabits(
+        habits.map((habit) =>
+          habit.id === habitId ? { ...habit, name: newName } : habit,
+        ),
+      );
+    } catch (error) {
+      console.error('Error updating habit name:', error);
+    }
+  };
+
+  const handleDeleteHabit = async (habitId: string) => {
+    try {
+      const { error } = await supabase
+        .from('habits')
+        .delete()
+        .eq('id', habitId);
+
+      if (error) throw error;
+
+      setHabits((prevHabits) =>
+        prevHabits.filter((habit) => habit.id !== habitId),
+      );
+    } catch (error) {
+      console.error('Error deleting habit:', error);
+    }
   };
 
   return (
@@ -219,7 +305,7 @@ export default function Index() {
                 key={habit.id}
                 habit={{
                   ...habit,
-                  totalDays: habit.completedDates.length,
+                  totalDays: habit.completedDates?.length || 0,
                 }}
                 allHabits={habits}
                 onToggle={(date) => toggleComplete(habit.id, date)}
