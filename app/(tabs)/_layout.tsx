@@ -4,11 +4,12 @@ import { Icon } from '@/components/ui/icon';
 
 export default function TabLayout() {
   return (
-    <Tabs screenOptions={{ tabBarActiveTintColor: 'blue' }}>
+    <Tabs>
       <Tabs.Screen
         name="index"
         options={{
           title: 'ホーム',
+          tabBarActiveTintColor: 'green',
           tabBarIcon: ({ color }) => <Icon as={Home} size="lg" color={color} />,
         }}
       />
@@ -16,6 +17,7 @@ export default function TabLayout() {
         name="social"
         options={{
           title: 'みんな',
+          tabBarActiveTintColor: 'red',
           tabBarIcon: ({ color }) => (
             <Icon as={Flame} size="lg" color={color} />
           ),
@@ -25,6 +27,7 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: '設定',
+          tabBarActiveTintColor: 'black',
           tabBarIcon: ({ color }) => (
             <Icon as={UserRoundCog} size="lg" color={color} />
           ),
