@@ -4,7 +4,7 @@ import { Icon } from '@/components/ui/icon';
 
 export default function TabLayout() {
   return (
-    <Tabs>
+    <Tabs screenOptions={{ animation: 'shift' }}>
       <Tabs.Screen
         name="index"
         options={{
