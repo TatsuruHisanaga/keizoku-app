@@ -110,7 +110,7 @@ export function WeekView({ habits, onToggle }: WeekViewProps) {
               <Box className="flex flex-row justify-between">
                 {weekDates.map((dateObj) => {
                   const dateStr = dateObj.toISOString().split('T')[0];
-                  const completedDates = habit.completedDates || [];
+                  const completedDates = habit?.completedDates ?? [];
                   const isCompleted = completedDates.includes(dateStr);
                   const isToday = dateStr === today;
 
