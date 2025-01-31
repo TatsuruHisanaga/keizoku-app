@@ -81,6 +81,8 @@ export default function Index() {
     habitName: '',
   });
 
+  const user = session?.user;
+
   // habitデータの取得
   useEffect(() => {
     if (session?.user) {
@@ -169,7 +171,6 @@ export default function Index() {
       const habit = habits.find((h) => h.id === habitId);
       if (!habit) return;
 
-      // completedDatesが未定義の場合は空配列を使用
       const completedDates = habit.completedDates || [];
       const isCompleted = completedDates.includes(date);
       const updatedCompletedDates = isCompleted
@@ -178,7 +179,8 @@ export default function Index() {
 
       const streak = getMaxConsecutiveDays(updatedCompletedDates);
 
-      const { error } = await supabase
+      // Update habit completion
+      const { error: habitError } = await supabase
         .from('habits')
         .update({
           completed_dates: updatedCompletedDates,
@@ -187,7 +189,24 @@ export default function Index() {
         })
         .eq('id', habitId);
 
-      if (error) throw error;
+      if (habitError) throw habitError;
+
+      // If habit was completed (not uncompleted), create activity
+      if (!isCompleted) {
+        const { error: activityError } = await supabase
+          .from('habit_activities')
+          .insert([
+            {
+              user_id: user?.id,
+              habit_id: habitId,
+              habit_name: habit.name,
+              completed_date: date,
+              streak: streak,
+            },
+          ]);
+
+        if (activityError) throw activityError;
+      }
 
       // UI更新とサウンド再生
       const playSound = async () => {

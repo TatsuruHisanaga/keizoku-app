@@ -35,21 +35,21 @@ export default function AchievementModal({
       if (confettiRef.current) {
         confettiRef.current.reset();
       }
-      
+
       const timer = setTimeout(() => {
         if (confettiRef.current) {
           confettiRef.current.reset();
           confettiRef.current.play(0);
         }
       }, 200);
-      
+
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
   const renderLottieView = () => {
     if (!isOpen) return null;
-    
+
     return (
       <LottieView
         ref={confettiRef}
