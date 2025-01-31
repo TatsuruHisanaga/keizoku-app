@@ -9,11 +9,11 @@ import {
   ModalFooter,
 } from '@/components/ui/modal';
 import { Button, ButtonText } from '@/components/ui/button';
-import { useEffect } from 'react';
 import { Box } from '@/components/ui/box';
 import { Center } from '@/components/ui/center';
 import { PartyPopper } from 'lucide-react-native';
-import { Animated, Easing } from 'react-native';
+import { useEffect, useRef } from 'react';
+import LottieView from 'lottie-react-native';
 
 interface NewHabitModalProps {
   isOpen: boolean;
@@ -26,28 +26,58 @@ export default function NewHabitModal({
   onClose,
   habitName,
 }: NewHabitModalProps) {
-  // アニメーション用のAnimated.Valueを作成
-  const scaleAnim = new Animated.Value(0);
+  const confettiRef = useRef<LottieView | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      scaleAnim.setValue(0);
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-        tension: 260,
-        friction: 20,
-      }).start();
+      if (confettiRef.current) {
+        confettiRef.current.reset();
+      }
+
+      const timer = setTimeout(() => {
+        if (confettiRef.current) {
+          confettiRef.current.reset();
+          confettiRef.current.play(0);
+        }
+      }, 200);
+
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
+  const renderLottieView = () => {
+    if (!isOpen) return null;
+
+    return (
+      <LottieView
+        ref={confettiRef}
+        source={require('@/assets/popConfetti.json')}
+        autoPlay={false}
+        loop={false}
+        progress={0}
+        resizeMode="cover"
+        style={{
+          position: 'absolute',
+          zIndex: 999,
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: '100%',
+          width: '100%',
+          pointerEvents: 'none',
+        }}
+      />
+    );
+  };
+
   return (
     <Center>
-      <Modal isOpen={isOpen} onClose={onClose} size="sm">
+      <Modal isOpen={isOpen} onClose={onClose} size="sm" style={{ zIndex: 10 }}>
         <ModalBackdrop />
         <ModalContent>
-          <Box className="w-20 h-20 bg-yellow-30 rounded-full flex items-center justify-center mx-auto">
-            <PartyPopper color="#facc15" />
+          <Box className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <PartyPopper color="#22c55e" />
           </Box>
           <ModalHeader>
             <Box></Box>
@@ -57,9 +87,6 @@ export default function NewHabitModal({
             <Box></Box>
           </ModalHeader>
           <ModalBody>
-            {/* <Text size="sm" className="text-typography-500 text-center mb-2">
-              {habitName}を追加しました！
-            </Text> */}
             <Text size="sm" className="text-typography-500 text-center">
               継続は力なり！頑張りましょう！
             </Text>
@@ -78,6 +105,7 @@ export default function NewHabitModal({
             </Box>
           </ModalFooter>
         </ModalContent>
+        {renderLottieView()}
       </Modal>
     </Center>
   );
