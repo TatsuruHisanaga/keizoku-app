@@ -161,7 +161,7 @@ export default function Index() {
         });
         setNewHabit('');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding habit:', error);
     }
     setShowError(false);
@@ -171,7 +171,17 @@ export default function Index() {
   const toggleComplete = async (habitId: string, date: string) => {
     try {
       const habit = habits.find((h) => h.id === habitId);
-      if (!habit) return;
+      if (!habit) {
+        console.error('Habit not found');
+        return;
+      }
+
+      // 日付が有効かチェック
+      const dateObj = new Date(date);
+      if (isNaN(dateObj.getTime())) {
+        console.error('Invalid date:', date);
+        return;
+      }
 
       const completedDates = habit.completedDates || [];
       const isCompleted = completedDates.includes(date);
@@ -182,42 +192,45 @@ export default function Index() {
       const streak = getMaxConsecutiveDays(updatedCompletedDates);
 
       // Update habit completion
-      const { error: habitError } = await supabase
+      const { data: updatedHabit, error: habitError } = await supabase
         .from('habits')
         .update({
           completed_dates: updatedCompletedDates,
           streak,
           total_days: updatedCompletedDates.length,
         })
-        .eq('id', habitId);
+        .eq('id', habitId)
+        .eq('user_id', session?.user?.id)
+        .select()
+        .single();
 
-      if (habitError) throw habitError;
+      if (habitError) {
+        console.error('Error updating habit:', habitError);
+        throw habitError;
+      }
 
-      // If habit was completed (not uncompleted), create activity
-      if (!isCompleted && habit.is_public) {
-        const { error: activityError } = await supabase
-          .from('habit_activities')
-          .insert([
-            {
-              user_id: user?.id,
-              habit_id: habitId,
-              habit_name: habit.name,
-              completed_date: date,
-              streak: streak,
-            },
-          ]);
-
-        if (activityError) throw activityError;
+      if (!updatedHabit) {
+        console.error('No habit was updated');
+        return;
       }
 
       // UI更新とサウンド再生
       const playSound = async () => {
-        await Audio.Sound.createAsync(
-          require('../../assets/sounds/click.mp3'),
-          {
-            shouldPlay: true,
-          },
-        );
+        try {
+          const { sound } = await Audio.Sound.createAsync(
+            require('../../assets/sounds/click.mp3'),
+            {
+              shouldPlay: true,
+            },
+          );
+          await sound.playAsync();
+          // サウンドのクリーンアップ
+          return () => {
+            sound.unloadAsync();
+          };
+        } catch (error) {
+          console.error('Error playing sound:', error);
+        }
       };
 
       setHabits(
@@ -241,8 +254,9 @@ export default function Index() {
           return h;
         }),
       );
-    } catch (error) {
-      console.error('Error toggling habit:', error);
+    } catch (error: any) {
+      console.error('Error toggling habit:', error.message || error);
+      alert('習慣の更新中にエラーが発生しました。もう一度お試しください。');
     }
   };
 
@@ -260,7 +274,7 @@ export default function Index() {
           habit.id === habitId ? { ...habit, name: newName } : habit,
         ),
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating habit name:', error);
     }
   };
@@ -277,7 +291,7 @@ export default function Index() {
       setHabits((prevHabits) =>
         prevHabits.filter((habit) => habit.id !== habitId),
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting habit:', error);
     }
   };
