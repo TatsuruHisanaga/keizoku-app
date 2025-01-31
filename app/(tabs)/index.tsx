@@ -59,6 +59,7 @@ export default function Index() {
       streak: number;
       completedDates: string[];
       totalDays: number;
+      is_public: boolean;
     }[]
   >([]);
   const [newHabit, setNewHabit] = useState('');
@@ -95,18 +96,19 @@ export default function Index() {
       const { data, error } = await supabase
         .from('habits')
         .select('*')
+        .eq('user_id', session?.user?.id)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
 
       if (data) {
-        // データの形式を変換し、completed_datesがnullの場合は空配列を設定
         const formattedData = data.map((habit) => ({
           id: habit.id,
           name: habit.name,
           streak: habit.streak || 0,
           completedDates: habit.completed_dates || [],
           totalDays: habit.total_days || 0,
+          is_public: habit.is_public || true,
         }));
         setHabits(formattedData);
       }
@@ -192,7 +194,7 @@ export default function Index() {
       if (habitError) throw habitError;
 
       // If habit was completed (not uncompleted), create activity
-      if (!isCompleted) {
+      if (!isCompleted && habit.is_public) {
         const { error: activityError } = await supabase
           .from('habit_activities')
           .insert([

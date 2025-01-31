@@ -13,56 +13,51 @@ import { RefreshControl, ScrollView } from 'react-native';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
-interface Activity {
+interface PublicHabit {
   id: string;
-  created_at: string;
-  user_id: string;
-  habit_name: string;
+  name: string;
   streak: number;
-  user: {
-    email: string;
-    user_metadata?: {
-      name?: string;
-      avatar_url?: string;
-    };
+  completed_dates: string[];
+  profiles: {
+    id: string;
+    username: string;
+    full_name: string;
+    avatar_url: string;
   };
 }
 
 export default function Social() {
-  const [activities, setActivities] = useState<Activity[]>([]);
+  const [publicHabits, setPublicHabits] = useState<PublicHabit[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchActivities = async () => {
+  const fetchPublicHabits = async () => {
     try {
       const { data, error } = await supabase
-        .from('habit_activities')
+        .from('habits')
         .select(
           `
           *,
-          user:user_id (
-            email,
-            user_metadata
+          profiles!habits_user_id_fkey (
+            id,
+            username,
+            full_name,
+            avatar_url
           )
         `,
         )
-        .order('created_at', { ascending: false })
+        .eq('is_public', true)
+        .order('updated_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
-      setActivities(data || []);
+      setPublicHabits(data || []);
     } catch (error) {
-      console.error('Error fetching activities:', error);
+      console.error('Error fetching public habits:', error);
     }
   };
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchActivities();
-    setRefreshing(false);
-  };
-
   useEffect(() => {
-    fetchActivities();
+    fetchPublicHabits();
   }, []);
 
   return (
@@ -70,49 +65,45 @@ export default function Social() {
       <ScrollView
         className="flex-1"
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={fetchPublicHabits}
+          />
         }
       >
         <Box className="p-4">
           <Text className="text-xl font-bold mb-4">みんなの習慣</Text>
           <VStack space="md">
-            {activities.map((activity) => (
-              <Box
-                key={activity.id}
-                className="p-4 bg-white rounded-lg shadow-sm"
-              >
+            {publicHabits.map((habit) => (
+              <Box key={habit.id} className="p-4 bg-white rounded-lg shadow-sm">
                 <HStack space="md" className="items-center">
                   <Avatar size="md">
                     <AvatarFallbackText>
-                      {activity.user?.user_metadata?.name?.[0] ||
-                        activity.user?.email?.[0]?.toUpperCase() ||
+                      {habit.profiles?.full_name?.[0] ||
+                        habit.profiles?.username?.[0]?.toUpperCase() ||
                         '?'}
                     </AvatarFallbackText>
-                    {activity.user?.user_metadata?.avatar_url && (
+                    {habit.profiles?.avatar_url && (
                       <AvatarImage
                         source={{
-                          uri: activity.user.user_metadata.avatar_url,
+                          uri: habit.profiles.avatar_url,
                         }}
                       />
                     )}
                   </Avatar>
                   <VStack className="flex-1">
                     <Text className="font-semibold">
-                      {activity.user?.user_metadata?.name ||
-                        activity.user?.email?.split('@')[0]}
+                      {habit.profiles?.full_name || habit.profiles?.username}
                     </Text>
                     <Text className="text-gray-600">
-                      「{activity.habit_name}」を達成しました！
+                      「{habit.name}」を継続中
                     </Text>
                     <HStack className="mt-1" space="sm">
                       <Text className="text-sm text-gray-500">
-                        {formatDistanceToNow(new Date(activity.created_at), {
-                          addSuffix: true,
-                          locale: ja,
-                        })}
+                        {habit.completed_dates?.length || 0}日達成
                       </Text>
                       <Text className="text-sm text-gray-500">
-                        🔥 {activity.streak}日連続
+                        🔥 {habit.streak}日連続
                       </Text>
                     </HStack>
                   </VStack>
