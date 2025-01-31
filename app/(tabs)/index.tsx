@@ -60,6 +60,7 @@ export default function Index() {
       streak: number;
       completedDates: string[];
       totalDays: number;
+      is_public: boolean;
     }[]
   >([]);
   const [newHabit, setNewHabit] = useState('');
@@ -81,6 +82,8 @@ export default function Index() {
     habitName: '',
   });
 
+  const user = session?.user;
+
   // habitデータの取得
   useEffect(() => {
     if (session?.user) {
@@ -93,18 +96,19 @@ export default function Index() {
       const { data, error } = await supabase
         .from('habits')
         .select('*')
+        .eq('user_id', session?.user?.id)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
 
       if (data) {
-        // データの形式を変換し、completed_datesがnullの場合は空配列を設定
         const formattedData = data.map((habit) => ({
           id: habit.id,
           name: habit.name,
           streak: habit.streak || 0,
           completedDates: habit.completed_dates || [],
           totalDays: habit.total_days || 0,
+          is_public: habit.is_public || true,
         }));
         setHabits(formattedData);
       }
@@ -146,7 +150,7 @@ export default function Index() {
         });
         return false; // エラーなし
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding habit:', error);
     }
     return true; // エラーあり
@@ -156,9 +160,18 @@ export default function Index() {
   const toggleComplete = async (habitId: string, date: string) => {
     try {
       const habit = habits.find((h) => h.id === habitId);
-      if (!habit) return;
+      if (!habit) {
+        console.error('Habit not found');
+        return;
+      }
 
-      // completedDatesが未定義の場合は空配列を使用
+      // 日付が有効かチェック
+      const dateObj = new Date(date);
+      if (isNaN(dateObj.getTime())) {
+        console.error('Invalid date:', date);
+        return;
+      }
+
       const completedDates = habit.completedDates || [];
       const isCompleted = completedDates.includes(date);
       const updatedCompletedDates = isCompleted
@@ -167,25 +180,46 @@ export default function Index() {
 
       const streak = getMaxConsecutiveDays(updatedCompletedDates);
 
-      const { error } = await supabase
+      // Update habit completion
+      const { data: updatedHabit, error: habitError } = await supabase
         .from('habits')
         .update({
           completed_dates: updatedCompletedDates,
           streak,
           total_days: updatedCompletedDates.length,
         })
-        .eq('id', habitId);
+        .eq('id', habitId)
+        .eq('user_id', session?.user?.id)
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (habitError) {
+        console.error('Error updating habit:', habitError);
+        throw habitError;
+      }
+
+      if (!updatedHabit) {
+        console.error('No habit was updated');
+        return;
+      }
 
       // UI更新とサウンド再生
       const playSound = async () => {
-        await Audio.Sound.createAsync(
-          require('../../assets/sounds/click.mp3'),
-          {
-            shouldPlay: true,
-          },
-        );
+        try {
+          const { sound } = await Audio.Sound.createAsync(
+            require('../../assets/sounds/click.mp3'),
+            {
+              shouldPlay: true,
+            },
+          );
+          await sound.playAsync();
+          // サウンドのクリーンアップ
+          return () => {
+            sound.unloadAsync();
+          };
+        } catch (error) {
+          console.error('Error playing sound:', error);
+        }
       };
 
       setHabits(
@@ -209,8 +243,9 @@ export default function Index() {
           return h;
         }),
       );
-    } catch (error) {
-      console.error('Error toggling habit:', error);
+    } catch (error: any) {
+      console.error('Error toggling habit:', error.message || error);
+      alert('習慣の更新中にエラーが発生しました。もう一度お試しください。');
     }
   };
 
@@ -228,7 +263,7 @@ export default function Index() {
           habit.id === habitId ? { ...habit, name: newName } : habit,
         ),
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating habit name:', error);
     }
   };
@@ -245,7 +280,7 @@ export default function Index() {
       setHabits((prevHabits) =>
         prevHabits.filter((habit) => habit.id !== habitId),
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting habit:', error);
     }
   };

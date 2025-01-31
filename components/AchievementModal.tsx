@@ -35,7 +35,7 @@ export default function AchievementModal({
       if (confettiRef.current) {
         confettiRef.current.reset();
       }
-      
+
       const timer = setTimeout(() => {
         if (confettiRef.current) {
           confettiRef.current.reset();
