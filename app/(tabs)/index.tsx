@@ -15,6 +15,7 @@ import { Audio } from 'expo-av';
 import NewHabitModal from '@/components/NewHabitModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Text } from '@/components/ui/text';
+import HabitFab from '@/components/HabitFab';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -62,7 +63,6 @@ export default function Index() {
     }[]
   >([]);
   const [newHabit, setNewHabit] = useState('');
-  const [showError, setShowError] = useState(false);
   const [newHabitModalData, setNewHabitModalData] = useState<{
     isOpen: boolean;
     habitName: string;
@@ -114,23 +114,12 @@ export default function Index() {
   };
 
   // 習慣の追加
-  const addHabit = async () => {
-    if (!newHabit.trim()) {
-      setShowError(true);
-      return;
+  const handleAddHabit = async (habitName: string) => {
+    if (!habitName.trim() || habitName.length > 16) {
+      return true; // エラーあり
     }
-    if (newHabit.length > 16) {
-      setShowError(true);
-      return;
-    }
-    if (habits.some((habit) => habit.name === newHabit.trim())) {
-      setShowError(true);
-      return;
-    }
-    setShowError(false);
-    if (habits.length >= 3) {
-      alert('習慣は3個までしか追加できません');
-      return;
+    if (habits.some((habit) => habit.name === habitName.trim())) {
+      return true; // エラーあり
     }
 
     try {
@@ -138,7 +127,7 @@ export default function Index() {
         .from('habits')
         .insert([
           {
-            name: newHabit,
+            name: habitName,
             streak: 0,
             completed_dates: [],
             user_id: session?.user?.id,
@@ -153,14 +142,14 @@ export default function Index() {
         setHabits([...habits, data]);
         setNewHabitModalData({
           isOpen: true,
-          habitName: newHabit,
+          habitName: habitName,
         });
-        setNewHabit('');
+        return false; // エラーなし
       }
     } catch (error) {
       console.error('Error adding habit:', error);
     }
-    setShowError(false);
+    return true; // エラーあり
   };
 
   // 習慣の完了状態の切り替え
@@ -261,93 +250,74 @@ export default function Index() {
     }
   };
 
+  // HabitFabに渡すためのハンドラー
+  const handleAddHabitWrapper = async (habitName: string) => {
+    const hasError = await handleAddHabit(habitName);
+    if (!hasError) {
+      setNewHabit(habitName);
+    }
+    return hasError;
+  };
+
   return (
     <Box className="justify-center h-full p-4">
       {session && session.user ? (
-        <VStack>
-          <HStack space="md">
-            <Box className="flex-1">
-              <Input
-                variant="outline"
-                size="lg"
-                isDisabled={false}
-                isInvalid={showError}
-                isReadOnly={false}
-              >
-                <InputField
-                  placeholder="新しい習慣を入力..."
-                  value={newHabit}
-                  onChangeText={(text) => {
-                    setNewHabit(text);
-                    setShowError(false);
-                  }}
-                />
-              </Input>
-              {showError && (
-                <Text size="sm" style={{ color: '#EF4444' }} className="mt-1">
-                  {!newHabit.trim()
-                    ? '習慣名を入力してください'
-                    : newHabit.length > 16
-                      ? '習慣名は16文字以内で入力してください'
-                      : '同じ名前の習慣が既に存在します'}
-                </Text>
+        <>
+          <VStack>
+            <Box className="mt-4 gap-4">
+              {habits.length === 0 ? (
+                <VStack space="md" className="items-center py-8">
+                  <Text size="lg" className="text-center text-gray-600">
+                    まだ習慣がありません
+                  </Text>
+                  <Text size="md" className="text-center text-gray-500">
+                    新しい習慣を登録して、継続の力を実感しましょう！
+                  </Text>
+                </VStack>
+              ) : (
+                habits.map((habit) => (
+                  <HabitItem
+                    key={habit.id}
+                    habit={{
+                      ...habit,
+                      totalDays: habit.completedDates?.length || 0,
+                    }}
+                    allHabits={habits}
+                    onToggle={(date) => toggleComplete(habit.id, date)}
+                    onEdit={(newName) => editHabitName(habit.id, newName)}
+                    onDelete={() => handleDeleteHabit(habit.id)}
+                  />
+                ))
               )}
             </Box>
-            <Button size="lg" onPress={addHabit}>
-              <ButtonIcon as={AddIcon} />
-              <ButtonText>追加</ButtonText>
-            </Button>
-          </HStack>
 
-          <Box className="mt-4 gap-4">
-            {habits.length === 0 ? (
-              <VStack space="md" className="items-center py-8">
-                <Text size="lg" className="text-center text-gray-600">
-                  まだ習慣がありません
-                </Text>
-                <Text size="md" className="text-center text-gray-500">
-                  新しい習慣を登録して、継続の力を実感しましょう！
-                </Text>
-              </VStack>
-            ) : (
-              habits.map((habit) => (
-                <HabitItem
-                  key={habit.id}
-                  habit={{
-                    ...habit,
-                    totalDays: habit.completedDates?.length || 0,
-                  }}
-                  allHabits={habits}
-                  onToggle={(date) => toggleComplete(habit.id, date)}
-                  onEdit={(newName) => editHabitName(habit.id, newName)}
-                  onDelete={() => handleDeleteHabit(habit.id)}
-                />
-              ))
-            )}
-          </Box>
+            <AchievementModal
+              isOpen={achievementData.isOpen}
+              onClose={() =>
+                setAchievementData((prev) => ({ ...prev, isOpen: false }))
+              }
+              streak={achievementData.streak}
+              habitName={achievementData.habitName}
+            />
 
-          <AchievementModal
-            isOpen={achievementData.isOpen}
-            onClose={() =>
-              setAchievementData((prev) => ({ ...prev, isOpen: false }))
-            }
-            streak={achievementData.streak}
-            habitName={achievementData.habitName}
+            <NewHabitModal
+              isOpen={newHabitModalData.isOpen}
+              onClose={() =>
+                setNewHabitModalData((prev) => ({ ...prev, isOpen: false }))
+              }
+              habitName={newHabitModalData.habitName}
+            />
+
+            {/* 週間ビュー */}
+            <Box className="mt-8">
+              <WeekView habits={habits} onToggle={toggleComplete} />
+            </Box>
+          </VStack>
+          <HabitFab
+            onAddHabit={handleAddHabitWrapper}
+            maxHabitsReached={habits.length >= 3}
           />
-
-          <NewHabitModal
-            isOpen={newHabitModalData.isOpen}
-            onClose={() =>
-              setNewHabitModalData((prev) => ({ ...prev, isOpen: false }))
-            }
-            habitName={newHabitModalData.habitName}
-          />
-
-          {/* 週間ビュー */}
-          <Box className="mt-8">
-            <WeekView habits={habits} onToggle={toggleComplete} />
-          </Box>
-        </VStack>
+        </>
       ) : (
         <Auth />
       )}
