@@ -67,7 +67,7 @@ export function HabitItem({
         .eq('user_id', user?.id);
 
       if (error) throw error;
-        
+
       if (editedName.length > 16) {
         setError('習慣名は16文字以内で入力してください');
         return;
@@ -163,9 +163,22 @@ export function HabitItem({
           transform: [{ scale: scaleAnim }],
           position: 'absolute',
           width: '100%',
+          paddingHorizontal: 2,
         }}
       >
-        <Box className="bg-white rounded-2xl shadow-sm p-4">
+        <Box
+          className="bg-white rounded-2xl p-4"
+          style={{
+            shadowColor: '#000',
+            shadowOffset: {
+              width: 0,
+              height: 1,
+            },
+            shadowOpacity: 0.03,
+            shadowRadius: 2,
+            elevation: 1,
+          }}
+        >
           {showDeleteConfirm ? (
             <Box className="flex flex-row items-center justify-between min-h-[42px]">
               <Text className="text-md text-gray-900">
