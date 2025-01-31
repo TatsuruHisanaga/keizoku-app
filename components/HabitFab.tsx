@@ -61,10 +61,8 @@ export default function HabitFab({
     <>
       <Fab
         size="lg"
-        placement="bottom right"
         onPress={() => setShowModal(true)}
         className="bg-teal-300 hover:bg-[#15803d] active:bg-[#166534]"
-        style={{ position: 'absolute' }}
       >
         <FabIcon as={AddIcon} color="black" />
       </Fab>
