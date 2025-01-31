@@ -3,17 +3,12 @@ import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { VStack } from '@/components/ui/vstack';
-import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
-import { AddIcon } from '@/components/ui/icon';
 import AchievementModal from '../../components/AchievementModal';
 import { Box } from '@/components/ui/box';
-import { Input, InputField } from '@/components/ui/input';
 import { HabitItem } from '@/components/HabitItem';
 import { WeekView } from '@/components/WeekView';
-import { HStack } from '@/components/ui/hstack';
 import { Audio } from 'expo-av';
 import NewHabitModal from '@/components/NewHabitModal';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Text } from '@/components/ui/text';
 import HabitFab from '@/components/HabitFab';
 import { ScrollView } from 'react-native';
@@ -82,8 +77,6 @@ export default function Index() {
     streak: 0,
     habitName: '',
   });
-
-  const user = session?.user;
 
   // habitデータの取得
   useEffect(() => {
