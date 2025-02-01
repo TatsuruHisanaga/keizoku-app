@@ -68,9 +68,14 @@ export default function Index() {
 
   const handleSave = async () => {
     if (!session) return;
-    // usernameが条件を満たしているかチェック（例: 最低3文字以上）
+    // usernameのバリデーションチェック
     if (username.trim().length < 3) {
-      console.error('Username must be at least 3 characters long.');
+      console.error('ユーザー名は3文字以上で入力してください。');
+      setUploading(false);
+      return;
+    }
+    if (username.length > 16) {
+      console.error('ユーザー名は16文字以内で入力してください。');
       setUploading(false);
       return;
     }
@@ -183,6 +188,7 @@ export default function Index() {
                     placeholder="ユーザー名を入力"
                     value={username}
                     onChangeText={setUsername}
+                    maxLength={16}
                   />
                 </Input>
               ) : (
@@ -191,25 +197,24 @@ export default function Index() {
 
               <Text className="text-sm text-gray-600 mb-1 mt-4">自己紹介</Text>
               {isEditing ? (
-                <Input className="w-full border border-gray-300 rounded-lg mb-2 py-2 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <InputField
-                    placeholder="自己紹介を入力（200文字以内）"
-                    value={bio}
-                    onChangeText={setBio}
-                    multiline
-                    textAlignVertical="top"
-                    maxLength={200}
-                  />
-                </Input>
+                <Box className="mb-2">
+                  <Input className="w-full border border-gray-300 rounded-lg mb-2 py-2 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <InputField
+                      placeholder="自己紹介を入力"
+                      value={bio}
+                      onChangeText={setBio}
+                      multiline
+                      textAlignVertical="top"
+                      maxLength={200}
+                    />
+                  </Input>
+                  <Text className="text-sm text-gray-500 text-right">
+                    {bio.length}/200文字
+                  </Text>
+                </Box>
               ) : (
                 <Text className="text-base">
                   {bio || '自己紹介が未設定です'}
-                </Text>
-              )}
-
-              {isEditing && (
-                <Text className="text-sm text-gray-500 text-right">
-                  {bio.length}/200文字
                 </Text>
               )}
             </VStack>
