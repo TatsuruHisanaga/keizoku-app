@@ -3,7 +3,7 @@ import {
   EllipsisVertical,
   SquarePen,
   Trash2,
-  Target,
+  Milestone,
 } from 'lucide-react-native';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Heading } from './ui/heading';
@@ -381,7 +381,7 @@ export function HabitItem({
                         onPress={() => setIsEditingGoal(true)}
                       >
                         <ButtonIcon
-                          as={Target}
+                          as={Milestone}
                           className="h-5 w-5"
                           style={{ color: '#6b7280' }}
                         />
