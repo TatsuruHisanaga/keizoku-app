@@ -1,6 +1,6 @@
 import Auth from '@/components/Auth';
 import { supabase } from '@/lib/supabase';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { VStack } from '@/components/ui/vstack';
 import AchievementModal from '../../components/AchievementModal';
@@ -79,13 +79,7 @@ export default function Index() {
   });
 
   // habitデータの取得
-  useEffect(() => {
-    if (session?.user) {
-      fetchHabits();
-    }
-  }, [session]);
-
-  const fetchHabits = async () => {
+  const fetchHabits = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('habits')
@@ -110,7 +104,13 @@ export default function Index() {
     } catch (error) {
       console.error('Error fetching habits:', error);
     }
-  };
+  }, [session]);
+
+  useEffect(() => {
+    if (session?.user) {
+      fetchHabits();
+    }
+  }, [session, fetchHabits]);
 
   // 習慣の追加
   const handleAddHabit = async (habitName: string) => {
