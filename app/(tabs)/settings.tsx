@@ -1,11 +1,7 @@
-import {
-  Text,
-  View,
-  TextInput,
-  Image,
-  Pressable,
-  ActivityIndicator,
-} from 'react-native';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Input, InputField } from '@/components/ui/input';
+import { Image, Pressable, ActivityIndicator } from 'react-native';
 import Auth from '@/components/Auth';
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
@@ -126,7 +122,7 @@ export default function Index() {
   };
 
   return (
-    <View className="h-full bg-white">
+    <Box className="h-full bg-white">
       {session && session.user ? (
         <VStack space="lg" className="p-6">
           <Text className="text-xl font-semibold">プロフィール</Text>
@@ -142,11 +138,11 @@ export default function Index() {
                   className="w-24 h-24 rounded-full border-2 border-gray-100"
                 />
               ) : (
-                <View className="w-24 h-24 rounded-full bg-gray-100 items-center justify-center">
+                <Box className="w-24 h-24 rounded-full bg-gray-100 items-center justify-center">
                   <Text className="text-gray-400">
                     {isEditing ? '写真を追加' : '写真なし'}
                   </Text>
-                </View>
+                </Box>
               )}
             </Pressable>
 
@@ -160,26 +156,28 @@ export default function Index() {
                 ユーザー名
               </Text>
               {isEditing ? (
-                <TextInput
-                  placeholder="ユーザー名を入力"
-                  value={username}
-                  onChangeText={setUsername}
-                  className="w-full bg-gray-50 rounded-lg px-4 py-3 text-base"
-                />
+                <Input className="w-full bg-gray-50 rounded-lg px-4 py-3 text-base">
+                  <InputField
+                    placeholder="ユーザー名を入力"
+                    value={username}
+                    onChangeText={setUsername}
+                  />
+                </Input>
               ) : (
                 <Text className="px-4 text-base">{username || '未設定'}</Text>
               )}
 
               <Text className="text-sm text-gray-600 mb-1 mt-4">自己紹介</Text>
               {isEditing ? (
-                <TextInput
-                  placeholder="自己紹介を入力"
-                  value={bio}
-                  onChangeText={setBio}
-                  multiline
-                  className="w-full bg-gray-50 rounded-lg px-4 py-3 min-h-[100px] text-base"
-                  textAlignVertical="top"
-                />
+                <Input className="w-full bg-gray-50 rounded-lg px-4 py-3 min-h-[100px] text-base">
+                  <InputField
+                    placeholder="自己紹介を入力"
+                    value={bio}
+                    onChangeText={setBio}
+                    multiline
+                    textAlignVertical="top"
+                  />
+                </Input>
               ) : (
                 <Text className="px-4 text-base">
                   {bio || '自己紹介が未設定です'}
@@ -247,6 +245,6 @@ export default function Index() {
       ) : (
         <Auth />
       )}
-    </View>
+    </Box>
   );
 }
