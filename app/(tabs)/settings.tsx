@@ -7,7 +7,7 @@ import { Box } from '@/components/ui/box';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { Input, InputField } from '@/components/ui/input';
-import { Pressable, ActivityIndicator } from 'react-native';
+import { Pressable, ActivityIndicator, Alert } from 'react-native';
 import Auth from '@/components/Auth';
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
@@ -154,6 +154,18 @@ export default function Index() {
     setIsEditing(false);
   };
 
+  const handleLogout = () => {
+    Alert.alert(
+      'ログアウト確認',
+      '本当にログアウトしますか？',
+      [
+        { text: 'キャンセル', style: 'cancel' },
+        { text: 'ログアウト', onPress: () => supabase.auth.signOut() },
+      ],
+      { cancelable: true },
+    );
+  };
+
   return (
     <Box className="h-full bg-white">
       {session && session.user ? (
@@ -280,7 +292,7 @@ export default function Index() {
 
               <Button
                 variant="outline"
-                onPress={() => supabase.auth.signOut()}
+                onPress={handleLogout}
                 className="w-full border-red-500"
               >
                 <ButtonText className="text-red-500 text-base">
