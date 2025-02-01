@@ -60,7 +60,6 @@ export default function Index() {
   };
 
   const [habits, setHabits] = useState<Habit[]>([]);
-  const [newHabit, setNewHabit] = useState('');
   const [newHabitModalData, setNewHabitModalData] = useState<{
     isOpen: boolean;
     habitName: string;
@@ -288,7 +287,7 @@ export default function Index() {
   const handleAddHabitWrapper = async (habitName: string) => {
     const hasError = await handleAddHabit(habitName);
     if (!hasError) {
-      setNewHabit(habitName);
+      // Removed setNewHabit as newHabit is unused
     }
     return hasError;
   };
