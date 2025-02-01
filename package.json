@@ -19,6 +19,7 @@
   "dependencies": {
     "@expo/html-elements": "^0.4.2",
     "@expo/vector-icons": "^14.0.2",
+    "@gluestack-ui/actionsheet": "^0.2.46",
     "@gluestack-ui/alert": "^0.1.16",
     "@gluestack-ui/avatar": "^0.1.18",
     "@gluestack-ui/button": "^1.0.8",
@@ -30,6 +31,7 @@
     "@gluestack-ui/modal": "^0.1.35",
     "@gluestack-ui/nativewind-utils": "^1.0.26",
     "@gluestack-ui/overlay": "^0.1.16",
+    "@gluestack-ui/select": "^0.1.30",
     "@gluestack-ui/toast": "^1.0.8",
     "@legendapp/motion": "^2.4.0",
     "@react-native-async-storage/async-storage": "1.23.1",
