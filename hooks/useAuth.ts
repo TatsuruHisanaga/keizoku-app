@@ -10,7 +10,9 @@ export function useAuth() {
       setUser(session?.user ?? null);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
 
@@ -18,4 +20,4 @@ export function useAuth() {
   }, []);
 
   return { user };
-} 
+}
