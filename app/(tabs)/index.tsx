@@ -49,16 +49,17 @@ export default function Index() {
     return maxStreak;
   }
 
-  const [habits, setHabits] = useState<
-    {
-      id: string;
-      name: string;
-      streak: number;
-      completedDates: string[];
-      totalDays: number;
-      is_public: boolean;
-    }[]
-  >([]);
+  type Habit = {
+    id: string;
+    name: string;
+    streak: number;
+    completedDates: string[];
+    totalDays: number;
+    is_public: boolean;
+    achieved_at?: string;
+  };
+
+  const [habits, setHabits] = useState<Habit[]>([]);
   const [newHabit, setNewHabit] = useState('');
   const [newHabitModalData, setNewHabitModalData] = useState<{
     isOpen: boolean;
@@ -103,6 +104,7 @@ export default function Index() {
           completedDates: habit.completed_dates || [],
           totalDays: habit.total_days || 0,
           is_public: habit.is_public || true,
+          achieved_at: habit.achieved_at,
         }));
         setHabits(formattedData);
       }
@@ -181,6 +183,9 @@ export default function Index() {
           completed_dates: updatedCompletedDates,
           streak,
           total_days: updatedCompletedDates.length,
+          achieved_at: !isCompleted
+            ? new Date().toISOString()
+            : habit.achieved_at,
         })
         .eq('id', habitId)
         .eq('user_id', session?.user?.id)

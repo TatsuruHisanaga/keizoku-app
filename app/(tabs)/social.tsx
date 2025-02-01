@@ -10,7 +10,8 @@ import {
 import { HStack } from '@/components/ui/hstack';
 import { BicepsFlexed, Flame, Medal, GraduationCap } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
-import { RefreshControl, ScrollView } from 'react-native';
+import { RefreshControl, ScrollView, TouchableOpacity } from 'react-native';
+import { Icon } from '@/components/ui/icon';
 
 interface PublicHabit {
   id: string;
@@ -18,6 +19,8 @@ interface PublicHabit {
   streak: number;
   completed_dates: string[];
   updated_at: string;
+  achieved_at: string;
+  likes?: number;
   profiles: {
     id: string;
     username: string;
@@ -82,8 +85,35 @@ function StreakBadge({ streak }: StreakBadgeProps) {
 export default function Social() {
   const [publicHabits, setPublicHabits] = useState<PublicHabit[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [likedHabits, setLikedHabits] = useState<{ [id: string]: boolean }>({});
+
+  const toggleLike = async (habitId: string): Promise<void> => {
+    const habit = publicHabits.find((h) => h.id === habitId);
+    if (!habit) return;
+
+    const currentLikes = habit.likes ?? 0;
+    const newLiked = !likedHabits[habitId];
+    const newLikeCount = newLiked
+      ? currentLikes + 1
+      : Math.max(currentLikes - 1, 0);
+
+    const { error } = await supabase
+      .from('habits')
+      .update({ likes: newLikeCount })
+      .eq('id', habitId);
+    if (error) {
+      console.error('Error updating like count:', error);
+      return;
+    }
+
+    setLikedHabits((prev) => ({ ...prev, [habitId]: newLiked }));
+    setPublicHabits((prev) =>
+      prev.map((h) => (h.id === habitId ? { ...h, likes: newLikeCount } : h)),
+    );
+  };
 
   const fetchPublicHabits = async () => {
+    setRefreshing(true);
     try {
       // 今日の日付を取得（YYYY-MM-DD形式）
       const today = new Date().toISOString().split('T')[0];
@@ -109,6 +139,8 @@ export default function Social() {
       setPublicHabits(data || []);
     } catch (error) {
       console.error('Error fetching public habits:', error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -125,6 +157,7 @@ export default function Social() {
       return `${minutes}分前`;
     }
     return date.toLocaleTimeString('ja-JP', {
+      timeZone: 'Asia/Tokyo',
       hour: '2-digit',
       minute: '2-digit',
     });
@@ -179,9 +212,24 @@ export default function Social() {
                   <Text className="text-sm text-gray-500">
                     累計{habit.completed_dates?.length || 0}日達成
                   </Text>
-                  <Text className="text-sm text-gray-400">
-                    {formatTime(habit.updated_at)}
-                  </Text>
+                  <HStack className="items-center justify-between">
+                    <Text className="text-sm text-gray-400">
+                      {formatTime(habit.achieved_at)}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => toggleLike(habit.id)}
+                      className="flex-row items-center"
+                    >
+                      <Icon
+                        as={Flame}
+                        color={likedHabits[habit.id] ? 'red' : 'gray'}
+                        size="lg"
+                      />
+                      <Text className="text-sm text-gray-500 min-w-[20px] text-center">
+                        {habit.likes}
+                      </Text>
+                    </TouchableOpacity>
+                  </HStack>
                 </VStack>
               </Box>
             ))}
