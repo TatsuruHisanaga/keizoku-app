@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { VStack } from '@/components/ui/vstack';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
-import { LogOut, Edit2 } from 'lucide-react-native';
+import { LogOut, SquarePen } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 export default function Index() {
@@ -225,7 +225,7 @@ export default function Index() {
                   <ButtonText className="text-gray-600 text-base">
                     編集
                   </ButtonText>
-                  <ButtonIcon as={Edit2} className="text-gray-600" />
+                  <ButtonIcon as={SquarePen} className="text-gray-600" />
                 </Button>
               )}
 
