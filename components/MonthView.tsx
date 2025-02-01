@@ -70,53 +70,41 @@ export function MonthView({ habits, currentDate }: MonthViewProps) {
   return (
     <Box className="bg-gray-800 rounded-xl p-4">
       {/* Weekday header (Monday-first) */}
-      <Box style={{ flexDirection: 'row', marginBottom: 8 }}>
+      <Box className="flex flex-row mb-2">
         {['月', '火', '水', '木', '金', '土', '日'].map((day, index) => (
           <Box
             key={index}
-            style={{
-              flex: 1,
-              alignItems: 'center',
-              padding: 4,
-            }}
+            className="flex-1 flex items-center justify-center h-10"
           >
-            <Text style={{ color: '#9CA3AF' }}>{day}</Text>
+            <Text className="text-gray-400">{day}</Text>
           </Box>
         ))}
       </Box>
 
       {/* Calendar grid */}
       {weeks.map((week, wi) => (
-        <Box key={wi} style={{ flexDirection: 'row', marginBottom: 4 }}>
+        <Box key={wi} className="flex flex-row mb-1">
           {week.map((day, di) => {
             const dateStr = formatDate(day);
             const isCompleted = allCompletedDates.includes(dateStr);
             const isToday = dateStr === today;
             const isCurrentMonth = day.getMonth() === month;
             return (
-              <Box
-                key={di}
-                style={{
-                  flex: 1,
-                  padding: 4,
-                  alignItems: 'center',
-                }}
-              >
+              <Box key={di} className="flex-1 flex items-center justify-center">
                 <Box
-                  style={{
-                    backgroundColor: isCompleted ? '#14B8A6' : 'transparent',
-                    padding: 8,
-                    borderRadius: 8,
-                    opacity: isCurrentMonth ? 1 : 0.5,
-                    borderWidth: isToday ? 2 : 0,
-                    borderColor: '#14B8A6',
-                  }}
+                  className={`
+                    w-10 h-10 flex items-center justify-center rounded-lg
+                    ${isCompleted ? 'bg-teal-500' : 'bg-transparent'}
+                    ${isToday ? 'border-2 border-teal-300' : ''}
+                    ${!isCurrentMonth ? 'opacity-50' : ''}
+                  `}
                 >
                   <Text
-                    style={{
-                      color: isCurrentMonth ? '#FFFFFF' : '#6B7280',
-                      opacity: isCurrentMonth ? 1 : 0.5,
-                    }}
+                    className={`
+                      text-base font-medium
+                      ${isCompleted ? 'text-white' : ''}
+                      ${isCurrentMonth ? 'text-white' : 'text-gray-500'}
+                    `}
                   >
                     {day.getDate()}
                   </Text>
