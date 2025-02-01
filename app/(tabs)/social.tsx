@@ -8,6 +8,7 @@ import {
   AvatarFallbackText,
 } from '@/components/ui/avatar';
 import { HStack } from '@/components/ui/hstack';
+import { BicepsFlexed, Flame, Medal, GraduationCap } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { RefreshControl, ScrollView } from 'react-native';
 
@@ -16,11 +17,66 @@ interface PublicHabit {
   name: string;
   streak: number;
   completed_dates: string[];
+  updated_at: string;
   profiles: {
     id: string;
     username: string;
     avatar_url: string;
   };
+}
+
+interface StreakBadgeProps {
+  streak: number;
+}
+
+function StreakBadge({ streak }: StreakBadgeProps) {
+  const getBadgeStyle = (streak: number) => {
+    if (streak >= 30) {
+      return {
+        bg: 'bg-purple-100',
+        text: 'text-purple-600',
+        iconColor: '#A855F7',
+        icon: GraduationCap,
+        label: '絶好調',
+      };
+    } else if (streak >= 14) {
+      return {
+        bg: 'bg-blue-100',
+        text: 'text-blue-600',
+        iconColor: '#3B82F6',
+        icon: Medal,
+        label: '好調',
+      };
+    } else if (streak >= 7) {
+      return {
+        bg: 'bg-orange-100',
+        text: 'text-orange-600',
+        iconColor: '#F97316',
+        icon: Flame,
+        label: '順調',
+      };
+    } else {
+      return {
+        bg: 'bg-gray-100',
+        text: 'text-gray-600',
+        iconColor: '#6B7280',
+        icon: BicepsFlexed,
+        label: 'チャレンジ中',
+      };
+    }
+  };
+
+  const style = getBadgeStyle(streak);
+  const Icon = style.icon;
+
+  return (
+    <Box className={`${style.bg} px-3 py-1 rounded-full`}>
+      <HStack space="xs" className="items-center">
+        <Icon color={style.iconColor} size={16} />
+        <Text className={`${style.text} font-bold`}>{streak}日連続</Text>
+      </HStack>
+    </Box>
+  );
 }
 
 export default function Social() {
@@ -29,6 +85,9 @@ export default function Social() {
 
   const fetchPublicHabits = async () => {
     try {
+      // 今日の日付を取得（YYYY-MM-DD形式）
+      const today = new Date().toISOString().split('T')[0];
+
       const { data, error } = await supabase
         .from('habits')
         .select(
@@ -42,6 +101,7 @@ export default function Social() {
         `,
         )
         .eq('is_public', true)
+        .contains('completed_dates', [today])
         .order('updated_at', { ascending: false })
         .limit(50);
 
@@ -56,6 +116,20 @@ export default function Social() {
     fetchPublicHabits();
   }, []);
 
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    if (diff < 3600000) {
+      const minutes = Math.floor(diff / 60000);
+      return `${minutes}分前`;
+    }
+    return date.toLocaleTimeString('ja-JP', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   return (
     <Box className="h-full">
       <ScrollView
@@ -68,42 +142,57 @@ export default function Social() {
         }
       >
         <Box className="p-4">
-          <Text className="text-xl font-bold mb-4">みんなの習慣</Text>
+          <Text className="text-xl font-bold mb-4">今日のみんなの取り組み</Text>
           <VStack space="md">
             {publicHabits.map((habit) => (
-              <Box key={habit.id} className="p-4 bg-white rounded-lg shadow-sm">
-                <HStack space="md" className="items-center">
-                  <Avatar size="md">
-                    <AvatarFallbackText>
-                      {habit.profiles?.username?.[0]?.toUpperCase() || '?'}
-                    </AvatarFallbackText>
-                    {habit.profiles?.avatar_url && (
-                      <AvatarImage
-                        source={{
-                          uri: habit.profiles.avatar_url,
-                        }}
-                      />
-                    )}
-                  </Avatar>
-                  <VStack className="flex-1">
-                    <Text className="font-semibold">
-                      {habit.profiles?.username}
+              <Box
+                key={habit.id}
+                className="p-4 bg-white rounded-lg shadow-sm border border-gray-100"
+              >
+                <VStack space="sm">
+                  {/* 習慣名と連続日数を目立たせる */}
+                  <HStack className="items-center justify-between">
+                    <Text className="text-lg font-bold">{habit.name}</Text>
+                    <StreakBadge streak={habit.streak} />
+                  </HStack>
+
+                  {/* ユーザー情報と達成時刻 */}
+                  <HStack space="md" className="items-center">
+                    <Avatar size="sm">
+                      <AvatarFallbackText>
+                        {habit.profiles?.username?.[0]?.toUpperCase() || '?'}
+                      </AvatarFallbackText>
+                      {habit.profiles?.avatar_url && (
+                        <AvatarImage
+                          source={{
+                            uri: habit.profiles.avatar_url,
+                          }}
+                        />
+                      )}
+                    </Avatar>
+                    <Text className="text-sm text-gray-500">
+                      {habit.profiles?.username || '名なしさん'}
                     </Text>
-                    <Text className="text-gray-600">
-                      「{habit.name}」を継続中
-                    </Text>
-                    <HStack className="mt-1" space="sm">
-                      <Text className="text-sm text-gray-500">
-                        {habit.completed_dates?.length || 0}日達成
-                      </Text>
-                      <Text className="text-sm text-gray-500">
-                        🔥 {habit.streak}日連続
-                      </Text>
-                    </HStack>
-                  </VStack>
-                </HStack>
+                  </HStack>
+
+                  {/* 総達成日数 */}
+                  <Text className="text-sm text-gray-500">
+                    累計{habit.completed_dates?.length || 0}日達成
+                  </Text>
+                  <Text className="text-sm text-gray-400">
+                    {formatTime(habit.updated_at)}
+                  </Text>
+                </VStack>
               </Box>
             ))}
+
+            {publicHabits.length === 0 && (
+              <Box className="py-8">
+                <Text className="text-center text-gray-500">
+                  今日はまだ達成された習慣がありません
+                </Text>
+              </Box>
+            )}
           </VStack>
         </Box>
       </ScrollView>
