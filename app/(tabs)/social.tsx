@@ -132,7 +132,7 @@ export default function Social() {
         )
         .eq('is_public', true)
         .contains('completed_dates', [today])
-        .order('updated_at', { ascending: false })
+        .order('achieved_at', { ascending: true })
         .limit(50);
 
       if (error) throw error;
