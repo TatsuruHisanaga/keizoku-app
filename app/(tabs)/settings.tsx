@@ -12,11 +12,8 @@ import { useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { VStack } from '@/components/ui/vstack';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
-import { LogOut, Edit2, X } from 'lucide-react-native';
-import { Divider } from '@/components/ui/divider';
-import { Box } from '@/components/ui/box';
+import { LogOut, Edit2 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { HStack } from '@/components/ui/hstack';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -135,7 +132,10 @@ export default function Index() {
           <Text className="text-xl font-semibold">プロフィール</Text>
 
           <VStack space="md" className="items-center">
-            <Pressable onPress={isEditing ? pickImage : undefined} className="mb-4">
+            <Pressable
+              onPress={isEditing ? pickImage : undefined}
+              className="mb-4"
+            >
               {avatar ? (
                 <Image
                   source={{ uri: avatar }}
@@ -144,19 +144,21 @@ export default function Index() {
               ) : (
                 <View className="w-24 h-24 rounded-full bg-gray-100 items-center justify-center">
                   <Text className="text-gray-400">
-                    {isEditing ? "写真を追加" : "写真なし"}
+                    {isEditing ? '写真を追加' : '写真なし'}
                   </Text>
                 </View>
               )}
             </Pressable>
 
             <VStack space="sm" className="w-full">
-              <Text className="text-sm text-gray-600 mb-1">登録中のメールアドレス</Text>
-              <Text className="px-4 text-base">
-                {session.user.email}
+              <Text className="text-sm text-gray-600 mb-1">
+                登録中のメールアドレス
               </Text>
+              <Text className="px-4 text-base">{session.user.email}</Text>
 
-              <Text className="text-sm text-gray-600 mb-1 mt-4">ユーザー名</Text>
+              <Text className="text-sm text-gray-600 mb-1 mt-4">
+                ユーザー名
+              </Text>
               {isEditing ? (
                 <TextInput
                   placeholder="ユーザー名を入力"
@@ -165,9 +167,7 @@ export default function Index() {
                   className="w-full bg-gray-50 rounded-lg px-4 py-3 text-base"
                 />
               ) : (
-                <Text className="px-4 text-base">
-                  {username || "未設定"}
-                </Text>
+                <Text className="px-4 text-base">{username || '未設定'}</Text>
               )}
 
               <Text className="text-sm text-gray-600 mb-1 mt-4">自己紹介</Text>
@@ -182,7 +182,7 @@ export default function Index() {
                 />
               ) : (
                 <Text className="px-4 text-base">
-                  {bio || "自己紹介が未設定です"}
+                  {bio || '自己紹介が未設定です'}
                 </Text>
               )}
             </VStack>
@@ -193,7 +193,7 @@ export default function Index() {
                   <ActivityIndicator size="large" color="#0000ff" />
                 ) : (
                   <>
-                    <Button 
+                    <Button
                       variant="solid"
                       onPress={() => {
                         handleSave();
@@ -202,7 +202,9 @@ export default function Index() {
                       className="w-full"
                       style={{ backgroundColor: '#333333' }}
                     >
-                      <ButtonText className="text-white text-base">変更を保存</ButtonText>
+                      <ButtonText className="text-white text-base">
+                        変更を保存
+                      </ButtonText>
                     </Button>
 
                     <Button
@@ -210,7 +212,9 @@ export default function Index() {
                       onPress={() => setIsEditing(false)}
                       className="w-full border-gray-300"
                     >
-                      <ButtonText className="text-gray-600 text-base">キャンセル</ButtonText>
+                      <ButtonText className="text-gray-600 text-base">
+                        キャンセル
+                      </ButtonText>
                     </Button>
                   </>
                 )
@@ -220,7 +224,9 @@ export default function Index() {
                   onPress={() => setIsEditing(true)}
                   className="w-full border-gray-300"
                 >
-                  <ButtonText className="text-gray-600 text-base">編集</ButtonText>
+                  <ButtonText className="text-gray-600 text-base">
+                    編集
+                  </ButtonText>
                   <ButtonIcon as={Edit2} className="text-gray-600" />
                 </Button>
               )}
@@ -230,7 +236,9 @@ export default function Index() {
                 onPress={() => supabase.auth.signOut()}
                 className="w-full border-red-500"
               >
-                <ButtonText className="text-red-500 text-base">ログアウト</ButtonText>
+                <ButtonText className="text-red-500 text-base">
+                  ログアウト
+                </ButtonText>
                 <ButtonIcon as={LogOut} className="text-red-500" />
               </Button>
             </VStack>
