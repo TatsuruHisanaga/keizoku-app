@@ -15,6 +15,8 @@ export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
+  const [originalUsername, setOriginalUsername] = useState('');
+  const [originalBio, setOriginalBio] = useState('');
   const [avatar, setAvatar] = useState('');
   const [uploading, setUploading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -45,6 +47,8 @@ export default function Index() {
           if (data) {
             setUsername(data.username || '');
             setBio(data.bio || '');
+            setOriginalUsername(data.username || '');
+            setOriginalBio(data.bio || '');
             setAvatar(data.avatar_url || '');
           }
         });
@@ -67,6 +71,12 @@ export default function Index() {
     // usernameが条件を満たしているかチェック（例: 最低3文字以上）
     if (username.trim().length < 3) {
       console.error('Username must be at least 3 characters long.');
+      setUploading(false);
+      return;
+    }
+    // bioの文字数チェック
+    if (bio.length > 200) {
+      console.error('自己紹介は200文字以内で入力してください。');
       setUploading(false);
       return;
     }
@@ -121,6 +131,18 @@ export default function Index() {
     setUploading(false);
   };
 
+  const handleEditStart = () => {
+    setOriginalUsername(username);
+    setOriginalBio(bio);
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setUsername(originalUsername);
+    setBio(originalBio);
+    setIsEditing(false);
+  };
+
   return (
     <Box className="h-full bg-white">
       {session && session.user ? (
@@ -171,16 +193,23 @@ export default function Index() {
               {isEditing ? (
                 <Input className="w-full border border-gray-300 rounded-lg mb-2 py-2 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <InputField
-                    placeholder="自己紹介を入力"
+                    placeholder="自己紹介を入力（200文字以内）"
                     value={bio}
                     onChangeText={setBio}
                     multiline
                     textAlignVertical="top"
+                    maxLength={200}
                   />
                 </Input>
               ) : (
                 <Text className="text-base">
                   {bio || '自己紹介が未設定です'}
+                </Text>
+              )}
+
+              {isEditing && (
+                <Text className="text-sm text-gray-500 text-right">
+                  {bio.length}/200文字
                 </Text>
               )}
             </VStack>
@@ -207,7 +236,7 @@ export default function Index() {
 
                     <Button
                       variant="outline"
-                      onPress={() => setIsEditing(false)}
+                      onPress={handleCancel}
                       className="w-full border-gray-300"
                     >
                       <ButtonText className="text-gray-600 text-base">
@@ -219,7 +248,7 @@ export default function Index() {
               ) : (
                 <Button
                   variant="outline"
-                  onPress={() => setIsEditing(true)}
+                  onPress={handleEditStart}
                   className="w-full border-gray-300"
                 >
                   <ButtonText className="text-gray-600 text-base">
