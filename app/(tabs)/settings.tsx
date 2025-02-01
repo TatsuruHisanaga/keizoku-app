@@ -12,9 +12,11 @@ import { useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { VStack } from '@/components/ui/vstack';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
-import { LogOut } from 'lucide-react-native';
+import { LogOut, Edit2, X } from 'lucide-react-native';
 import { Divider } from '@/components/ui/divider';
+import { Box } from '@/components/ui/box';
 import * as ImagePicker from 'expo-image-picker';
+import { HStack } from '@/components/ui/hstack';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -22,6 +24,7 @@ export default function Index() {
   const [bio, setBio] = useState('');
   const [avatar, setAvatar] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -126,81 +129,111 @@ export default function Index() {
   };
 
   return (
-    <View className="h-full p-4">
+    <View className="h-full bg-white">
       {session && session.user ? (
-        <VStack space="lg">
-          {/* ユーザープロフィールセクション with inline editing */}
-          <VStack space="sm" className="items-center p-4">
-            {avatar ? (
-              <Pressable onPress={pickImage}>
+        <VStack space="lg" className="p-6">
+          <Text className="text-xl font-semibold">プロフィール</Text>
+
+          <VStack space="md" className="items-center">
+            <Pressable onPress={isEditing ? pickImage : undefined} className="mb-4">
+              {avatar ? (
                 <Image
                   source={{ uri: avatar }}
-                  style={{ width: 80, height: 80, borderRadius: 40 }}
+                  className="w-24 h-24 rounded-full border-2 border-gray-100"
                 />
-              </Pressable>
-            ) : (
-              <Pressable onPress={pickImage}>
-                <View className="w-16 h-16 rounded-full bg-gray-200 items-center justify-center">
-                  <Text>画像を選択</Text>
+              ) : (
+                <View className="w-24 h-24 rounded-full bg-gray-100 items-center justify-center">
+                  <Text className="text-gray-400">
+                    {isEditing ? "写真を追加" : "写真なし"}
+                  </Text>
                 </View>
-              </Pressable>
-            )}
-            <Text className="text-lg font-semibold">{session.user.email}</Text>
-            <TextInput
-              placeholder="ユーザー名"
-              value={username}
-              onChangeText={setUsername}
-              style={{
-                borderWidth: 1,
-                borderColor: '#ccc',
-                padding: 8,
-                marginVertical: 8,
-                width: '100%',
-              }}
-            />
-            <TextInput
-              placeholder="自己紹介"
-              value={bio}
-              onChangeText={setBio}
-              multiline
-              style={{
-                borderWidth: 1,
-                borderColor: '#ccc',
-                padding: 8,
-                marginVertical: 8,
-                height: 80,
-                width: '100%',
-                textAlignVertical: 'top',
-              }}
-            />
-            {uploading ? (
-              <ActivityIndicator />
-            ) : (
-              <Button variant="solid" onPress={handleSave}>
-                <ButtonText>保存する</ButtonText>
+              )}
+            </Pressable>
+
+            <VStack space="sm" className="w-full">
+              <Text className="text-sm text-gray-600 mb-1">登録中のメールアドレス</Text>
+              <Text className="px-4 text-base">
+                {session.user.email}
+              </Text>
+
+              <Text className="text-sm text-gray-600 mb-1 mt-4">ユーザー名</Text>
+              {isEditing ? (
+                <TextInput
+                  placeholder="ユーザー名を入力"
+                  value={username}
+                  onChangeText={setUsername}
+                  className="w-full bg-gray-50 rounded-lg px-4 py-3 text-base"
+                />
+              ) : (
+                <Text className="px-4 text-base">
+                  {username || "未設定"}
+                </Text>
+              )}
+
+              <Text className="text-sm text-gray-600 mb-1 mt-4">自己紹介</Text>
+              {isEditing ? (
+                <TextInput
+                  placeholder="自己紹介を入力"
+                  value={bio}
+                  onChangeText={setBio}
+                  multiline
+                  className="w-full bg-gray-50 rounded-lg px-4 py-3 min-h-[100px] text-base"
+                  textAlignVertical="top"
+                />
+              ) : (
+                <Text className="px-4 text-base">
+                  {bio || "自己紹介が未設定です"}
+                </Text>
+              )}
+            </VStack>
+
+            <VStack space="sm" className="w-full mt-6">
+              {isEditing ? (
+                uploading ? (
+                  <ActivityIndicator size="large" color="#0000ff" />
+                ) : (
+                  <>
+                    <Button 
+                      variant="solid"
+                      onPress={() => {
+                        handleSave();
+                        setIsEditing(false);
+                      }}
+                      className="w-full"
+                      style={{ backgroundColor: '#333333' }}
+                    >
+                      <ButtonText className="text-white text-base">変更を保存</ButtonText>
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      onPress={() => setIsEditing(false)}
+                      className="w-full border-gray-300"
+                    >
+                      <ButtonText className="text-gray-600 text-base">キャンセル</ButtonText>
+                    </Button>
+                  </>
+                )
+              ) : (
+                <Button
+                  variant="outline"
+                  onPress={() => setIsEditing(true)}
+                  className="w-full border-gray-300"
+                >
+                  <ButtonText className="text-gray-600 text-base">編集</ButtonText>
+                  <ButtonIcon as={Edit2} className="text-gray-600" />
+                </Button>
+              )}
+
+              <Button
+                variant="outline"
+                onPress={() => supabase.auth.signOut()}
+                className="w-full border-red-500"
+              >
+                <ButtonText className="text-red-500 text-base">ログアウト</ButtonText>
+                <ButtonIcon as={LogOut} className="text-red-500" />
               </Button>
-            )}
-          </VStack>
-
-          <Divider />
-
-          {/* アカウント設定セクション */}
-          <VStack space="sm">
-            <Text className="text-lg font-semibold">アカウント設定</Text>
-            <Button
-              variant="outline"
-              className="w-full"
-              onPress={() => supabase.auth.signOut()}
-            >
-              <ButtonText>ログアウト</ButtonText>
-              <ButtonIcon as={LogOut} />
-            </Button>
-          </VStack>
-
-          {/* アプリ設定セクション */}
-          <VStack space="sm">
-            <Text className="text-lg font-semibold">アプリ設定</Text>
-            {/* ここに通知設定などのオプションを追加できます */}
+            </VStack>
           </VStack>
         </VStack>
       ) : (
