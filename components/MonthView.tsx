@@ -104,7 +104,7 @@ export function MonthView({ habits, currentDate }: MonthViewProps) {
               >
                 <Box
                   style={{
-                    backgroundColor: isCompleted ? '#B7A643' : 'transparent',
+                    backgroundColor: isCompleted ? '#14B8A6' : 'transparent',
                     padding: 8,
                     borderRadius: 8,
                     opacity: isCurrentMonth ? 1 : 0.5,
