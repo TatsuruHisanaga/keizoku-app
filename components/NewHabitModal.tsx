@@ -14,6 +14,10 @@ import { Center } from '@/components/ui/center';
 import { PartyPopper } from 'lucide-react-native';
 import { useState, useEffect, useRef } from 'react';
 import LottieView from 'lottie-react-native';
+import { HStack } from '@/components/ui/hstack';
+import { Select, SelectIcon, SelectInput, SelectItem, SelectTrigger, SelectContent, SelectPortal, SelectDragIndicatorWrapper, SelectDragIndicator } from '@/components/ui/select';
+import { ChevronDownIcon } from '@/components/ui/icon';
+import { Input, InputField } from './ui/input';
 
 interface NewHabitModalProps {
   isOpen: boolean;
@@ -28,6 +32,7 @@ export default function NewHabitModal({
 }: NewHabitModalProps) {
   const confettiRef = useRef<LottieView | null>(null);
   const [goal, setGoal] = useState(false);
+  const [goalType, setGoalType] = useState('Days');
 
   const handleClose = () => {
     setGoal(false);
@@ -138,6 +143,48 @@ export default function NewHabitModal({
                   alignItems: 'center',
                 }}
               >
+                <HStack className="w-full">
+                  <Select
+                    className="w-1/2"
+                    onValueChange={(value) => setGoalType(value as "Days" | "Daily")}
+                  >
+                    <SelectTrigger className="flex items-center justify-between">
+                      <SelectInput placeholder="選択してください" />
+                      <SelectIcon className="ml-auto mr-2" as={ChevronDownIcon}/>
+                    </SelectTrigger>
+                    <SelectPortal>
+                    <SelectContent>
+                      <SelectDragIndicatorWrapper>
+                        <SelectDragIndicator />
+                      </SelectDragIndicatorWrapper>
+                      <SelectItem label="日数" value="Days" />
+                      <SelectItem label="日付" value="Daily" />
+                    </SelectContent>
+                  </SelectPortal>
+                  </Select>
+                  {goalType === 'Days' ? (
+                    <Input className='w-1/2'>
+                      <InputField placeholder="目標の日数" />
+                    </Input>
+                  ) : (
+                    <Select className="w-1/2">
+                      <SelectTrigger className="flex items-center justify-between">
+                        <SelectInput placeholder="選択してください" />
+                        <SelectIcon className="ml-auto mr-2" as={ChevronDownIcon}/>
+                      </SelectTrigger>
+                      <SelectPortal>
+                        <SelectContent>
+                        <SelectDragIndicatorWrapper>
+                          <SelectDragIndicator />
+                        </SelectDragIndicatorWrapper>
+                        <SelectItem label="1日" value="1th" />
+                        <SelectItem label="2日" value="2nd" />
+                        <SelectItem label="3日" value="3rd" />
+                        </SelectContent>
+                      </SelectPortal>
+                    </Select>
+                  )}
+                </HStack>
                 <Button onPress={handleClose} className="w-full">
                   <ButtonText>始める</ButtonText>
                 </Button>
