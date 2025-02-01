@@ -4,6 +4,7 @@ import {
   AvatarImage,
 } from '@/components/ui/avatar';
 import { Box } from '@/components/ui/box';
+import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { Input, InputField } from '@/components/ui/input';
 import { Pressable, ActivityIndicator } from 'react-native';
@@ -162,9 +163,9 @@ export default function Index() {
           <VStack space="md" className="items-center">
             <Pressable
               onPress={isEditing ? pickImage : undefined}
-              className="mb-4"
+              className="mb-4 relative"
             >
-              <Avatar size="lg">
+              <Avatar size="lg" style={{ opacity: isEditing ? 0.7 : 1 }}>
                 <AvatarFallbackText>
                   {username?.[0]?.toUpperCase() || '?'}
                 </AvatarFallbackText>
@@ -176,6 +177,11 @@ export default function Index() {
                   />
                 )}
               </Avatar>
+              {isEditing && (
+                <Box className="absolute right-0 bottom-0 bg-gray-100 rounded-full p-1">
+                  <Icon as={SquarePen} size="sm" className="text-gray-600" />
+                </Box>
+              )}
             </Pressable>
 
             <VStack space="sm" className="w-full">
