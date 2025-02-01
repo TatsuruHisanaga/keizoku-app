@@ -10,8 +10,6 @@ import {
 import { HStack } from '@/components/ui/hstack';
 import { supabase } from '@/lib/supabase';
 import { RefreshControl, ScrollView } from 'react-native';
-import { formatDistanceToNow } from 'date-fns';
-import { ja } from 'date-fns/locale';
 
 interface PublicHabit {
   id: string;
@@ -21,7 +19,6 @@ interface PublicHabit {
   profiles: {
     id: string;
     username: string;
-    full_name: string;
     avatar_url: string;
   };
 }
@@ -40,7 +37,6 @@ export default function Social() {
           profiles!habits_user_id_fkey (
             id,
             username,
-            full_name,
             avatar_url
           )
         `,
@@ -79,9 +75,7 @@ export default function Social() {
                 <HStack space="md" className="items-center">
                   <Avatar size="md">
                     <AvatarFallbackText>
-                      {habit.profiles?.full_name?.[0] ||
-                        habit.profiles?.username?.[0]?.toUpperCase() ||
-                        '?'}
+                      {habit.profiles?.username?.[0]?.toUpperCase() || '?'}
                     </AvatarFallbackText>
                     {habit.profiles?.avatar_url && (
                       <AvatarImage
@@ -93,7 +87,7 @@ export default function Social() {
                   </Avatar>
                   <VStack className="flex-1">
                     <Text className="font-semibold">
-                      {habit.profiles?.full_name || habit.profiles?.username}
+                      {habit.profiles?.username}
                     </Text>
                     <Text className="text-gray-600">
                       「{habit.name}」を継続中
