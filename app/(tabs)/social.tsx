@@ -157,6 +157,7 @@ export default function Social() {
       return `${minutes}分前`;
     }
     return date.toLocaleTimeString('ja-JP', {
+      timeZone: 'Asia/Tokyo',
       hour: '2-digit',
       minute: '2-digit',
     });
