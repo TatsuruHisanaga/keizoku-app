@@ -104,6 +104,7 @@ export function WeekView({
                 <Box className="flex flex-row justify-between">
                   {weekDates.map((dateObj) => {
                     const dateStr = dateObj.toISOString().split('T')[0];
+                    const isFuture = dateStr > today;
                     const completedDates = habit?.completedDates ?? [];
                     const isCompleted = completedDates.includes(dateStr);
                     const isToday = dateStr === today;
@@ -112,9 +113,11 @@ export function WeekView({
                       <Button
                         key={dateStr}
                         onPress={() => onToggle(habit.id, dateStr)}
+                        disabled={isFuture}
                         className={`p-0 w-10 h-10 rounded-lg
                           ${isCompleted ? 'bg-teal-500' : 'bg-gray-700'} 
                           ${isToday ? 'border-2 border-teal-300' : ''}
+                          ${isFuture ? 'opacity-50' : ''}
                         `}
                       >
                         <ButtonText
