@@ -8,15 +8,10 @@ import {
   AvatarFallbackText,
 } from '@/components/ui/avatar';
 import { HStack } from '@/components/ui/hstack';
-import {
-  BicepsFlexed,
-  Flame,
-  Medal,
-  GraduationCap,
-  Heart,
-} from 'lucide-react-native';
+import { BicepsFlexed, Flame, Medal, GraduationCap } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { RefreshControl, ScrollView, TouchableOpacity } from 'react-native';
+import { Icon } from '@/components/ui/icon';
 
 interface PublicHabit {
   id: string;
@@ -118,10 +113,11 @@ export default function Social() {
   };
 
   const fetchPublicHabits = async () => {
+    setRefreshing(true);
     try {
       // 今日の日付を取得（YYYY-MM-DD形式）
       const today = new Date().toISOString().split('T')[0];
-
+      
       const { data, error } = await supabase
         .from('habits')
         .select(
@@ -132,17 +128,19 @@ export default function Social() {
             username,
             avatar_url
           )
-        `,
+        `
         )
         .eq('is_public', true)
         .contains('completed_dates', [today])
         .order('updated_at', { ascending: false })
         .limit(50);
-
+      
       if (error) throw error;
       setPublicHabits(data || []);
     } catch (error) {
       console.error('Error fetching public habits:', error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -221,12 +219,13 @@ export default function Social() {
                       onPress={() => toggleLike(habit.id)}
                       className="flex-row items-center"
                     >
-                      <Heart
+                      <Icon
+                        as={Flame}
                         color={likedHabits[habit.id] ? 'red' : 'gray'}
-                        size={20}
+                        size="lg"
                       />
-                      <Text className="ml-1 text-sm text-gray-500">
-                        {habit.likes ?? 0}
+                      <Text className="text-sm text-gray-500 min-w-[20px] text-center">
+                        {habit.likes}
                       </Text>
                     </TouchableOpacity>
                   </HStack>
