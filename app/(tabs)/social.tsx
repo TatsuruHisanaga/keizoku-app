@@ -19,7 +19,7 @@ interface PublicHabit {
   streak: number;
   completed_dates: string[];
   updated_at: string;
-  achieved_at?: string;
+  achieved_at: string;
   likes?: number;
   profiles: {
     id: string;
@@ -117,7 +117,7 @@ export default function Social() {
     try {
       // 今日の日付を取得（YYYY-MM-DD形式）
       const today = new Date().toISOString().split('T')[0];
-      
+
       const { data, error } = await supabase
         .from('habits')
         .select(
@@ -128,13 +128,13 @@ export default function Social() {
             username,
             avatar_url
           )
-        `
+        `,
         )
         .eq('is_public', true)
         .contains('completed_dates', [today])
         .order('updated_at', { ascending: false })
         .limit(50);
-      
+
       if (error) throw error;
       setPublicHabits(data || []);
     } catch (error) {
@@ -213,7 +213,7 @@ export default function Social() {
                   </Text>
                   <HStack className="items-center justify-between">
                     <Text className="text-sm text-gray-400">
-                      {formatTime(habit.achieved_at ?? habit.updated_at)}
+                      {formatTime(habit.achieved_at)}
                     </Text>
                     <TouchableOpacity
                       onPress={() => toggleLike(habit.id)}
