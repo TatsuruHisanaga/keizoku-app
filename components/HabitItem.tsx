@@ -3,6 +3,7 @@ import {
   EllipsisVertical,
   SquarePen,
   Trash2,
+  Target,
 } from 'lucide-react-native';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Heading } from './ui/heading';
@@ -21,6 +22,7 @@ export interface HabitItemProps {
     streak: number;
     completedDates: string[];
     totalDays: number;
+    goal?: number;
   };
   allHabits: {
     id: string;
@@ -48,6 +50,11 @@ export function HabitItem({
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(habit.name);
   const [error, setError] = useState('');
+  const [isEditingGoal, setIsEditingGoal] = useState(false);
+  const [editedGoal, setEditedGoal] = useState(
+    habit.goal ? habit.goal.toString() : '',
+  );
+  const [goalError, setGoalError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -150,9 +157,45 @@ export function HabitItem({
     setError('');
   };
 
+  // Handler for saving goal changes
+  const handleGoalSave = async () => {
+    const parsedGoal = parseInt(editedGoal, 10);
+    if (isNaN(parsedGoal) || parsedGoal <= 0) {
+      setGoalError('有効な目標日数を入力してください');
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from('habits')
+        .update({ goal: parsedGoal })
+        .eq('id', habit.id)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      setIsEditingGoal(false);
+      setIsMenuOpen(false);
+      setGoalError('');
+    } catch (error) {
+      console.error('Error updating habit goal:', error);
+      setGoalError('更新に失敗しました');
+    }
+  };
+
+  const handleGoalCancel = () => {
+    setEditedGoal(habit.goal ? habit.goal.toString() : '');
+    setIsEditingGoal(false);
+    setIsMenuOpen(false);
+    setGoalError('');
+  };
+
   useEffect(() => {
     setError('');
   }, [isEditing]);
+
+  useEffect(() => {
+    setGoalError('');
+  }, [isEditingGoal]);
 
   return (
     <View style={{ height: containerHeight }}>
@@ -170,10 +213,7 @@ export function HabitItem({
           className="bg-white rounded-2xl p-4"
           style={{
             shadowColor: '#000',
-            shadowOffset: {
-              width: 0,
-              height: 1,
-            },
+            shadowOffset: { width: 0, height: 1 },
             shadowOpacity: 0.03,
             shadowRadius: 2,
             elevation: 1,
@@ -264,6 +304,56 @@ export function HabitItem({
                     </Text>
                   )}
                 </Box>
+              ) : isEditingGoal ? (
+                <Box className="flex-1">
+                  <Box className="flex flex-row items-center gap-2">
+                    <Box className="flex-1">
+                      <Input isInvalid={!!goalError}>
+                        <InputField
+                          value={editedGoal}
+                          onChangeText={setEditedGoal}
+                          placeholder="目標日数を入力"
+                          keyboardType="numeric"
+                        />
+                      </Input>
+                    </Box>
+                    <Box className="flex flex-row gap-2">
+                      <Button
+                        variant="solid"
+                        size="md"
+                        className="rounded-lg border"
+                        style={{
+                          backgroundColor: '#f0fdf4',
+                          borderColor: '#bbf7d0',
+                        }}
+                        onPress={handleGoalSave}
+                      >
+                        <ButtonText style={{ color: '#4b5563' }}>
+                          保存
+                        </ButtonText>
+                      </Button>
+                      <Button
+                        variant="solid"
+                        size="md"
+                        className="rounded-lg border"
+                        style={{
+                          backgroundColor: '#fef2f2',
+                          borderColor: '#fecaca',
+                        }}
+                        onPress={handleGoalCancel}
+                      >
+                        <ButtonText style={{ color: '#4b5563' }}>
+                          キャンセル
+                        </ButtonText>
+                      </Button>
+                    </Box>
+                  </Box>
+                  {goalError && (
+                    <Text style={{ color: '#EF4444' }} className="text-sm mt-1">
+                      {goalError}
+                    </Text>
+                  )}
+                </Box>
               ) : (
                 <Box className="flex flex-col justify-center">
                   <Heading className="text-lg font-medium text-gray-900">
@@ -272,92 +362,93 @@ export function HabitItem({
                   <Text className="text-sm text-gray-500">
                     累計{habit.totalDays}日達成 / 最高連続{habit.streak}日
                   </Text>
+                  {habit.goal != null && (
+                    <Text className="text-sm text-gray-500">
+                      目標: {habit.goal}日
+                    </Text>
+                  )}
                 </Box>
               )}
-              <Box className="flex flex-row gap-2">
-                {isEditing ? (
-                  <></>
-                ) : isMenuOpen ? (
-                  <>
-                    <Button
-                      variant="solid"
-                      size="sm"
-                      className={`w-10 h-10 
-                        rounded-xl border 
-                        border-gray-300`}
-                      style={{
-                        backgroundColor: '#ffffff',
-                      }}
-                      onPress={() => setIsEditing(true)}
-                    >
-                      <ButtonIcon
-                        as={SquarePen}
-                        className={`h-5 
-                          w-5`}
-                        style={{ color: '#6b7280' }}
-                      />
-                    </Button>
-                    <Button
-                      variant="solid"
-                      size="sm"
-                      className={`w-10 h-10 
-                        rounded-xl border 
-                        border-gray-300`}
-                      style={{
-                        backgroundColor: '#ffffff',
-                      }}
-                      onPress={handleDeleteClick}
-                    >
-                      <ButtonIcon
-                        as={Trash2}
-                        className={`h-5 
-                          w-5`}
-                        style={{ color: '#6b7280' }}
-                      />
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      variant="solid"
-                      size="sm"
-                      className={`w-10 h-10 
-                        rounded-xl border`}
-                      style={{
-                        backgroundColor: isCompleted ? '#f0fdf4' : '#ffffff',
-                        borderColor: isCompleted ? '#bbf7d0' : '#e5e7eb',
-                      }}
-                      onPress={() => onToggle(today)}
-                    >
-                      <ButtonIcon
-                        as={Check}
-                        className={`h-5 
-                          w-5`}
-                        style={{ color: isCompleted ? '#16a34a' : '#6b7280' }}
-                      />
-                    </Button>
+              {isEditing || isEditingGoal ? null : (
+                <Box className="flex flex-row gap-2">
+                  {isMenuOpen ? (
+                    <>
+                      <Button
+                        variant="solid"
+                        size="sm"
+                        className="w-10 h-10 rounded-xl border border-gray-300"
+                        style={{ backgroundColor: '#ffffff' }}
+                        onPress={() => setIsEditingGoal(true)}
+                      >
+                        <ButtonIcon
+                          as={Target}
+                          className="h-5 w-5"
+                          style={{ color: '#6b7280' }}
+                        />
+                      </Button>
+                      <Button
+                        variant="solid"
+                        size="sm"
+                        className="w-10 h-10 rounded-xl border border-gray-300"
+                        style={{ backgroundColor: '#ffffff' }}
+                        onPress={() => setIsEditing(true)}
+                      >
+                        <ButtonIcon
+                          as={SquarePen}
+                          className="h-5 w-5"
+                          style={{ color: '#6b7280' }}
+                        />
+                      </Button>
+                      <Button
+                        variant="solid"
+                        size="sm"
+                        className="w-10 h-10 rounded-xl border border-gray-300"
+                        style={{ backgroundColor: '#ffffff' }}
+                        onPress={handleDeleteClick}
+                      >
+                        <ButtonIcon
+                          as={Trash2}
+                          className="h-5 w-5"
+                          style={{ color: '#6b7280' }}
+                        />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        variant="solid"
+                        size="sm"
+                        className="w-10 h-10 rounded-xl border"
+                        style={{
+                          backgroundColor: isCompleted ? '#f0fdf4' : '#ffffff',
+                          borderColor: isCompleted ? '#bbf7d0' : '#e5e7eb',
+                        }}
+                        onPress={() => onToggle(today)}
+                      >
+                        <ButtonIcon
+                          as={Check}
+                          className="h-5 w-5"
+                          style={{ color: isCompleted ? '#16a34a' : '#6b7280' }}
+                        />
+                      </Button>
 
-                    <Button
-                      variant="solid"
-                      size="sm"
-                      className={`w-10 h-10 
-                        rounded-xl border 
-                        border-gray-300`}
-                      style={{
-                        backgroundColor: '#ffffff',
-                      }}
-                      onPress={() => setIsMenuOpen(true)}
-                    >
-                      <ButtonIcon
-                        as={EllipsisVertical}
-                        className={`h-5 
-                          w-5`}
-                        style={{ color: '#6b7280' }}
-                      />
-                    </Button>
-                  </>
-                )}
-              </Box>
+                      <Button
+                        variant="solid"
+                        size="sm"
+                        className="w-10 h-10 rounded-xl border border-gray-300"
+                        style={{ backgroundColor: '#ffffff' }}
+                        onPress={() => setIsMenuOpen(true)}
+                      >
+                        <ButtonIcon
+                          as={EllipsisVertical}
+                          className="h-5 w-5"
+                          style={{ color: '#6b7280' }}
+                        />
+                      </Button>
+                    </>
+                  )}
+                </Box>
+              )}
             </Box>
           )}
         </Box>
