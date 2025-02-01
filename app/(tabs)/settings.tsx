@@ -132,8 +132,6 @@ export default function Index() {
     if (error) {
       console.error('Profile update error:', error);
     } else {
-      console.log('Profile updated:', data);
-      // オプション: 取得した最新の値で state を更新
       setUsername(data.username || '');
       setBio(data.bio || '');
       setAvatar(data.avatar_url || '');
@@ -156,7 +154,7 @@ export default function Index() {
 
   const handleLogout = () => {
     Alert.alert(
-      'ログアウト確認',
+      '確認',
       '本当にログアウトしますか？',
       [
         { text: 'キャンセル', style: 'cancel' },
