@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { VStack } from '@/components/ui/vstack';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
-import { LogOut } from 'lucide-react-native';
+import { LogOut, Edit2, X } from 'lucide-react-native';
 import { Divider } from '@/components/ui/divider';
 import { Box } from '@/components/ui/box';
 import * as ImagePicker from 'expo-image-picker';
@@ -24,6 +24,7 @@ export default function Index() {
   const [bio, setBio] = useState('');
   const [avatar, setAvatar] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -131,9 +132,10 @@ export default function Index() {
     <View className="h-full bg-white">
       {session && session.user ? (
         <VStack space="lg" className="p-6">
-          {/* ユーザープロフィールセクション */}
+          <Text className="text-xl font-semibold">プロフィール</Text>
+
           <VStack space="md" className="items-center">
-            <Pressable onPress={pickImage} className="mb-4">
+            <Pressable onPress={isEditing ? pickImage : undefined} className="mb-4">
               {avatar ? (
                 <Image
                   source={{ uri: avatar }}
@@ -141,47 +143,86 @@ export default function Index() {
                 />
               ) : (
                 <View className="w-24 h-24 rounded-full bg-gray-100 items-center justify-center">
-                  <Text className="text-gray-400">写真を追加</Text>
+                  <Text className="text-gray-400">
+                    {isEditing ? "写真を追加" : "写真なし"}
+                  </Text>
                 </View>
               )}
             </Pressable>
 
-            <Text className="text-gray-600">{session.user.email}</Text>
+            <VStack space="sm" className="w-full">
+              <Text className="text-sm text-gray-600 mb-1">登録中のメールアドレス</Text>
+              <Text className="px-4 text-base">
+                {session.user.email}
+              </Text>
 
-            <VStack space="sm" className="w-full mt-4">
-              <Text className="text-sm text-gray-600 mb-1">ユーザー名</Text>
-              <TextInput
-                placeholder="ユーザー名を入力"
-                value={username}
-                onChangeText={setUsername}
-                className="w-full bg-gray-50 rounded-lg px-4 py-3 text-base"
-              />
+              <Text className="text-sm text-gray-600 mb-1 mt-4">ユーザー名</Text>
+              {isEditing ? (
+                <TextInput
+                  placeholder="ユーザー名を入力"
+                  value={username}
+                  onChangeText={setUsername}
+                  className="w-full bg-gray-50 rounded-lg px-4 py-3 text-base"
+                />
+              ) : (
+                <Text className="px-4 text-base">
+                  {username || "未設定"}
+                </Text>
+              )}
 
               <Text className="text-sm text-gray-600 mb-1 mt-4">自己紹介</Text>
-              <TextInput
-                placeholder="自己紹介を入力"
-                value={bio}
-                onChangeText={setBio}
-                multiline
-                className="w-full bg-gray-50 rounded-lg px-4 py-3 min-h-[100px] text-base"
-                textAlignVertical="top"
-              />
+              {isEditing ? (
+                <TextInput
+                  placeholder="自己紹介を入力"
+                  value={bio}
+                  onChangeText={setBio}
+                  multiline
+                  className="w-full bg-gray-50 rounded-lg px-4 py-3 min-h-[100px] text-base"
+                  textAlignVertical="top"
+                />
+              ) : (
+                <Text className="px-4 text-base">
+                  {bio || "自己紹介が未設定です"}
+                </Text>
+              )}
             </VStack>
 
             <VStack space="sm" className="w-full mt-6">
-              {uploading ? (
-                <ActivityIndicator size="large" color="#0000ff" />
+              {isEditing ? (
+                uploading ? (
+                  <ActivityIndicator size="large" color="#0000ff" />
+                ) : (
+                  <>
+                    <Button 
+                      variant="solid"
+                      onPress={() => {
+                        handleSave();
+                        setIsEditing(false);
+                      }}
+                      className="w-full"
+                      style={{ backgroundColor: '#333333' }}
+                    >
+                      <ButtonText className="text-white text-base">変更を保存</ButtonText>
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      onPress={() => setIsEditing(false)}
+                      className="w-full border-gray-300"
+                    >
+                      <ButtonText className="text-gray-600 text-base">キャンセル</ButtonText>
+                    </Button>
+                  </>
+                )
               ) : (
-                <Button 
-                  variant="solid"
-                  onPress={handleSave}
-                  className="w-full"
-                  style={{ backgroundColor: '#14b8a6' }}
+                <Button
+                  variant="outline"
+                  onPress={() => setIsEditing(true)}
+                  className="w-full border-gray-300"
                 >
-                  <ButtonText className="text-white">変更を保存</ButtonText>
+                  <ButtonText className="text-gray-600 text-base">編集</ButtonText>
+                  <ButtonIcon as={Edit2} className="text-gray-600" />
                 </Button>
-
-
               )}
 
               <Button
@@ -189,7 +230,7 @@ export default function Index() {
                 onPress={() => supabase.auth.signOut()}
                 className="w-full border-red-500"
               >
-                <ButtonText className="text-red-500">ログアウト</ButtonText>
+                <ButtonText className="text-red-500 text-base">ログアウト</ButtonText>
                 <ButtonIcon as={LogOut} className="text-red-500" />
               </Button>
             </VStack>
