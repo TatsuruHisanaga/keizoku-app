@@ -71,7 +71,7 @@ export function WeekView({ habits, onToggle }: WeekViewProps) {
   if (!mounted) return null;
 
   return (
-    <Box className="bg-gray-900 rounded-3xl p-6 shadow-xl">
+    <Box className="bg-gray-900 rounded-3xl p-6">
       <Box className="flex flex-row items-center justify-between mb-6">
         <Button
           className="h-10 w-10 text-gray-400 hover:text-white hover:bg-gray-700 rounded-xl p-1"

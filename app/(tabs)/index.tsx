@@ -3,19 +3,15 @@ import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { VStack } from '@/components/ui/vstack';
-import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
-import { AddIcon } from '@/components/ui/icon';
 import AchievementModal from '../../components/AchievementModal';
 import { Box } from '@/components/ui/box';
-import { Input, InputField } from '@/components/ui/input';
 import { HabitItem } from '@/components/HabitItem';
 import { WeekView } from '@/components/WeekView';
-import { HStack } from '@/components/ui/hstack';
 import { Audio } from 'expo-av';
 import NewHabitModal from '@/components/NewHabitModal';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Text } from '@/components/ui/text';
 import HabitFab from '@/components/HabitFab';
+import { ScrollView } from 'react-native';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -81,8 +77,6 @@ export default function Index() {
     streak: 0,
     habitName: '',
   });
-
-  const user = session?.user;
 
   // habitデータの取得
   useEffect(() => {
@@ -295,63 +289,67 @@ export default function Index() {
   };
 
   return (
-    <Box className="justify-center h-full p-4">
+    <Box className="justify-center h-full p-4 relative">
       {session && session.user ? (
         <>
-          <VStack>
-            <Box className="mt-4 gap-4">
-              {habits.length === 0 ? (
-                <VStack space="md" className="items-center py-8">
-                  <Text size="lg" className="text-center text-gray-600">
-                    まだ習慣がありません
-                  </Text>
-                  <Text size="md" className="text-center text-gray-500">
-                    新しい習慣を登録して、継続の力を実感しましょう！
-                  </Text>
-                </VStack>
-              ) : (
-                habits.map((habit) => (
-                  <HabitItem
-                    key={habit.id}
-                    habit={{
-                      ...habit,
-                      totalDays: habit.completedDates?.length || 0,
-                    }}
-                    allHabits={habits}
-                    onToggle={(date) => toggleComplete(habit.id, date)}
-                    onEdit={(newName) => editHabitName(habit.id, newName)}
-                    onDelete={() => handleDeleteHabit(habit.id)}
-                  />
-                ))
-              )}
-            </Box>
+          <ScrollView className="flex-1">
+            <VStack>
+              <Box className="mt-4 gap-4">
+                {habits.length === 0 ? (
+                  <VStack space="md" className="items-center py-8">
+                    <Text size="lg" className="text-center text-gray-600">
+                      まだ習慣がありません
+                    </Text>
+                    <Text size="md" className="text-center text-gray-500">
+                      新しい習慣を登録して、継続の力を実感しましょう！
+                    </Text>
+                  </VStack>
+                ) : (
+                  habits.map((habit) => (
+                    <HabitItem
+                      key={habit.id}
+                      habit={{
+                        ...habit,
+                        totalDays: habit.completedDates?.length || 0,
+                      }}
+                      allHabits={habits}
+                      onToggle={(date) => toggleComplete(habit.id, date)}
+                      onEdit={(newName) => editHabitName(habit.id, newName)}
+                      onDelete={() => handleDeleteHabit(habit.id)}
+                    />
+                  ))
+                )}
+              </Box>
 
-            <AchievementModal
-              isOpen={achievementData.isOpen}
-              onClose={() =>
-                setAchievementData((prev) => ({ ...prev, isOpen: false }))
-              }
-              streak={achievementData.streak}
-              habitName={achievementData.habitName}
+              <AchievementModal
+                isOpen={achievementData.isOpen}
+                onClose={() =>
+                  setAchievementData((prev) => ({ ...prev, isOpen: false }))
+                }
+                streak={achievementData.streak}
+                habitName={achievementData.habitName}
+              />
+
+              <NewHabitModal
+                isOpen={newHabitModalData.isOpen}
+                onClose={() =>
+                  setNewHabitModalData((prev) => ({ ...prev, isOpen: false }))
+                }
+                habitName={newHabitModalData.habitName}
+              />
+
+              {/* 週間ビュー */}
+              <Box className="mt-8 mb-20">
+                <WeekView habits={habits} onToggle={toggleComplete} />
+              </Box>
+            </VStack>
+          </ScrollView>
+          <Box className="absolute bottom-4 right-4">
+            <HabitFab
+              onAddHabit={handleAddHabitWrapper}
+              maxHabitsReached={habits.length >= 3}
             />
-
-            <NewHabitModal
-              isOpen={newHabitModalData.isOpen}
-              onClose={() =>
-                setNewHabitModalData((prev) => ({ ...prev, isOpen: false }))
-              }
-              habitName={newHabitModalData.habitName}
-            />
-
-            {/* 週間ビュー */}
-            <Box className="mt-8">
-              <WeekView habits={habits} onToggle={toggleComplete} />
-            </Box>
-          </VStack>
-          <HabitFab
-            onAddHabit={handleAddHabitWrapper}
-            maxHabitsReached={habits.length >= 3}
-          />
+          </Box>
         </>
       ) : (
         <Auth />
