@@ -181,6 +181,7 @@ export default function Index() {
           completed_dates: updatedCompletedDates,
           streak,
           total_days: updatedCompletedDates.length,
+          achieved_at: !isCompleted ? new Date().toISOString() : null,
         })
         .eq('id', habitId)
         .eq('user_id', session?.user?.id)
