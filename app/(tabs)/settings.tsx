@@ -1,7 +1,12 @@
+import {
+  Avatar,
+  AvatarFallbackText,
+  AvatarImage,
+} from '@/components/ui/avatar';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
 import { Input, InputField } from '@/components/ui/input';
-import { Image, Pressable, ActivityIndicator } from 'react-native';
+import { Pressable, ActivityIndicator } from 'react-native';
 import Auth from '@/components/Auth';
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
@@ -159,18 +164,18 @@ export default function Index() {
               onPress={isEditing ? pickImage : undefined}
               className="mb-4"
             >
-              {avatar ? (
-                <Image
-                  source={{ uri: avatar }}
-                  className="w-24 h-24 rounded-full border-2 border-gray-100"
-                />
-              ) : (
-                <Box className="w-24 h-24 rounded-full bg-gray-100 items-center justify-center">
-                  <Text className="text-gray-400">
-                    {isEditing ? '写真を追加' : '写真なし'}
-                  </Text>
-                </Box>
-              )}
+              <Avatar size="lg">
+                <AvatarFallbackText>
+                  {username?.[0]?.toUpperCase() || '?'}
+                </AvatarFallbackText>
+                {avatar && (
+                  <AvatarImage
+                    source={{
+                      uri: avatar,
+                    }}
+                  />
+                )}
+              </Avatar>
             </Pressable>
 
             <VStack space="sm" className="w-full">
