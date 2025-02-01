@@ -180,7 +180,14 @@ export default function Social() {
             {publicHabits.map((habit) => (
               <Box
                 key={habit.id}
-                className="p-4 bg-white rounded-lg shadow-sm border border-gray-100"
+                className="p-4 bg-white rounded-lg  border border-gray-100"
+                style={{
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.03,
+                  shadowRadius: 2,
+                  elevation: 1,
+                }}
               >
                 <VStack space="sm">
                   {/* 習慣名と連続日数を目立たせる */}
