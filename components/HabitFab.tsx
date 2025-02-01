@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Fab, FabIcon, FabLabel } from '@/components/ui/fab';
 import { AddIcon } from '@/components/ui/icon';
 import { Input, InputField } from '@/components/ui/input';
@@ -26,11 +26,14 @@ export default function HabitFab({
   maxHabitsReached,
 }: HabitFabProps) {
   const [showModal, setShowModal] = useState(false);
-  const [newHabit, setNewHabit] = useState('');
   const [showError, setShowError] = useState(false);
   const [errorType, setErrorType] = useState<
     'empty' | 'tooLong' | 'duplicate' | null
   >(null);
+
+  const habitTextRef = useRef<string>('');
+
+  const [inputKey, setInputKey] = useState(Math.random().toString(36));
 
   const handleSubmit = async () => {
     if (maxHabitsReached) {
@@ -39,12 +42,13 @@ export default function HabitFab({
       return;
     }
 
-    const hasError = await onAddHabit(newHabit);
+    const habitText = habitTextRef.current;
+    const hasError = await onAddHabit(habitText);
     if (hasError) {
       setShowError(true);
-      if (!newHabit.trim()) {
+      if (!habitText.trim()) {
         setErrorType('empty');
-      } else if (newHabit.length > 16) {
+      } else if (habitText.length > 16) {
         setErrorType('tooLong');
       } else {
         setErrorType('duplicate');
@@ -52,7 +56,8 @@ export default function HabitFab({
     } else {
       setShowError(false);
       setErrorType(null);
-      setNewHabit('');
+      habitTextRef.current = '';
+      setInputKey(Math.random().toString(36));
       setShowModal(false);
     }
   };
@@ -71,7 +76,8 @@ export default function HabitFab({
         isOpen={showModal}
         onClose={() => {
           setShowModal(false);
-          setNewHabit('');
+          habitTextRef.current = '';
+          setInputKey(Math.random().toString(36));
           setShowError(false);
           setErrorType(null);
         }}
@@ -89,10 +95,14 @@ export default function HabitFab({
                   isReadOnly={false}
                 >
                   <InputField
+                    key={inputKey}
                     placeholder="新しい習慣を入力..."
-                    value={newHabit}
                     onChangeText={(text) => {
-                      setNewHabit(text);
+                      habitTextRef.current = text;
+                      setShowError(false);
+                      setErrorType(null);
+                    }}
+                    onFocus={() => {
                       setShowError(false);
                       setErrorType(null);
                     }}
@@ -118,7 +128,8 @@ export default function HabitFab({
               style={{ marginRight: 12 }}
               onPress={() => {
                 setShowModal(false);
-                setNewHabit('');
+                habitTextRef.current = '';
+                setInputKey(Math.random().toString(36));
               }}
             >
               <ButtonText>キャンセル</ButtonText>
