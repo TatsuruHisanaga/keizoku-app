@@ -14,7 +14,9 @@ import { VStack } from '@/components/ui/vstack';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { LogOut } from 'lucide-react-native';
 import { Divider } from '@/components/ui/divider';
+import { Box } from '@/components/ui/box';
 import * as ImagePicker from 'expo-image-picker';
+import { HStack } from '@/components/ui/hstack';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -126,81 +128,71 @@ export default function Index() {
   };
 
   return (
-    <View className="h-full p-4">
+    <View className="h-full bg-white">
       {session && session.user ? (
-        <VStack space="lg">
-          {/* ユーザープロフィールセクション with inline editing */}
-          <VStack space="sm" className="items-center p-4">
-            {avatar ? (
-              <Pressable onPress={pickImage}>
+        <VStack space="lg" className="p-6">
+          {/* ユーザープロフィールセクション */}
+          <VStack space="md" className="items-center">
+            <Pressable onPress={pickImage} className="mb-4">
+              {avatar ? (
                 <Image
                   source={{ uri: avatar }}
-                  style={{ width: 80, height: 80, borderRadius: 40 }}
+                  className="w-24 h-24 rounded-full border-2 border-gray-100"
                 />
-              </Pressable>
-            ) : (
-              <Pressable onPress={pickImage}>
-                <View className="w-16 h-16 rounded-full bg-gray-200 items-center justify-center">
-                  <Text>画像を選択</Text>
+              ) : (
+                <View className="w-24 h-24 rounded-full bg-gray-100 items-center justify-center">
+                  <Text className="text-gray-400">写真を追加</Text>
                 </View>
-              </Pressable>
-            )}
-            <Text className="text-lg font-semibold">{session.user.email}</Text>
-            <TextInput
-              placeholder="ユーザー名"
-              value={username}
-              onChangeText={setUsername}
-              style={{
-                borderWidth: 1,
-                borderColor: '#ccc',
-                padding: 8,
-                marginVertical: 8,
-                width: '100%',
-              }}
-            />
-            <TextInput
-              placeholder="自己紹介"
-              value={bio}
-              onChangeText={setBio}
-              multiline
-              style={{
-                borderWidth: 1,
-                borderColor: '#ccc',
-                padding: 8,
-                marginVertical: 8,
-                height: 80,
-                width: '100%',
-                textAlignVertical: 'top',
-              }}
-            />
-            {uploading ? (
-              <ActivityIndicator />
-            ) : (
-              <Button variant="solid" onPress={handleSave}>
-                <ButtonText>保存する</ButtonText>
+              )}
+            </Pressable>
+
+            <Text className="text-gray-600">{session.user.email}</Text>
+
+            <VStack space="sm" className="w-full mt-4">
+              <Text className="text-sm text-gray-600 mb-1">ユーザー名</Text>
+              <TextInput
+                placeholder="ユーザー名を入力"
+                value={username}
+                onChangeText={setUsername}
+                className="w-full bg-gray-50 rounded-lg px-4 py-3 text-base"
+              />
+
+              <Text className="text-sm text-gray-600 mb-1 mt-4">自己紹介</Text>
+              <TextInput
+                placeholder="自己紹介を入力"
+                value={bio}
+                onChangeText={setBio}
+                multiline
+                className="w-full bg-gray-50 rounded-lg px-4 py-3 min-h-[100px] text-base"
+                textAlignVertical="top"
+              />
+            </VStack>
+
+            <VStack space="sm" className="w-full mt-6">
+              {uploading ? (
+                <ActivityIndicator size="large" color="#0000ff" />
+              ) : (
+                <Button 
+                  variant="solid"
+                  onPress={handleSave}
+                  className="w-full"
+                  style={{ backgroundColor: '#14b8a6' }}
+                >
+                  <ButtonText className="text-white">変更を保存</ButtonText>
+                </Button>
+
+
+              )}
+
+              <Button
+                variant="outline"
+                onPress={() => supabase.auth.signOut()}
+                className="w-full border-red-500"
+              >
+                <ButtonText className="text-red-500">ログアウト</ButtonText>
+                <ButtonIcon as={LogOut} className="text-red-500" />
               </Button>
-            )}
-          </VStack>
-
-          <Divider />
-
-          {/* アカウント設定セクション */}
-          <VStack space="sm">
-            <Text className="text-lg font-semibold">アカウント設定</Text>
-            <Button
-              variant="outline"
-              className="w-full"
-              onPress={() => supabase.auth.signOut()}
-            >
-              <ButtonText>ログアウト</ButtonText>
-              <ButtonIcon as={LogOut} />
-            </Button>
-          </VStack>
-
-          {/* アプリ設定セクション */}
-          <VStack space="sm">
-            <Text className="text-lg font-semibold">アプリ設定</Text>
-            {/* ここに通知設定などのオプションを追加できます */}
+            </VStack>
           </VStack>
         </VStack>
       ) : (
