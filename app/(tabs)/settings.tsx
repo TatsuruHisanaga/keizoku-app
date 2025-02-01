@@ -193,41 +193,45 @@ export default function Index() {
               <Text className="text-sm text-gray-600 mb-1 mt-4">
                 ユーザー名
               </Text>
-              {isEditing ? (
-                <Input className="w-full border border-gray-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <InputField
-                    placeholder="ユーザー名を入力"
-                    value={username}
-                    onChangeText={setUsername}
-                    maxLength={16}
-                  />
-                </Input>
-              ) : (
-                <Text className="text-base">{username || '未設定'}</Text>
-              )}
-
-              <Text className="text-sm text-gray-600 mb-1 mt-4">自己紹介</Text>
-              {isEditing ? (
-                <Box className="mb-2">
-                  <Input className="w-full border border-gray-300 rounded-lg mb-2 py-2 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <Box className="mb-2 min-h-[40px]">
+                {isEditing ? (
+                  <Input className="w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <InputField
-                      placeholder="自己紹介を入力"
-                      value={bio}
-                      onChangeText={setBio}
-                      multiline
-                      textAlignVertical="top"
-                      maxLength={200}
+                      placeholder="ユーザー名を入力"
+                      value={username}
+                      onChangeText={setUsername}
+                      maxLength={16}
                     />
                   </Input>
-                  <Text className="text-sm text-gray-500 text-right">
-                    {bio.length}/200文字
+                ) : (
+                  <Text className="text-base">{username || '未設定'}</Text>
+                )}
+              </Box>
+
+              <Text className="text-sm text-gray-600 mb-1 mt-4">自己紹介</Text>
+              <Box className="mb-2 min-h-[100px]">
+                {isEditing ? (
+                  <>
+                    <Input className="w-full border border-gray-300 rounded-lg mb-1 py-2 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <InputField
+                        placeholder="自己紹介を入力"
+                        value={bio}
+                        onChangeText={setBio}
+                        multiline
+                        textAlignVertical="top"
+                        maxLength={200}
+                      />
+                    </Input>
+                    <Text className="text-sm text-gray-500 text-right">
+                      {bio.length}/200文字
+                    </Text>
+                  </>
+                ) : (
+                  <Text className="text-base">
+                    {bio || '自己紹介が未設定です'}
                   </Text>
-                </Box>
-              ) : (
-                <Text className="text-base">
-                  {bio || '自己紹介が未設定です'}
-                </Text>
-              )}
+                )}
+              </Box>
             </VStack>
 
             <VStack space="sm" className="w-full mt-6">
