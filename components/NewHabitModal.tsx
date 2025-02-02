@@ -15,6 +15,7 @@ import { PartyPopper } from 'lucide-react-native';
 import { useState, useEffect, useRef } from 'react';
 import LottieView from 'lottie-react-native';
 import { Calendar as RNCalendar } from 'react-native-calendars';
+import { supabase } from '@/lib/supabase';
 
 interface NewHabitModalProps {
   isOpen: boolean;
@@ -38,7 +39,28 @@ export default function NewHabitModal({
   const todayJapan = new Date(japanTime);
   const currentJapanDate = todayJapan.toISOString().slice(0, 10);
 
-  const handleClose = () => {
+  const handleClose = async () => {
+    // 目標設定モードで日付が選択されている場合、習慣の目標を更新する
+    if (goal && selectedDate && daysDiff !== null) {
+      const computedGoal = daysDiff - 1;
+      if (computedGoal > 0) {
+        try {
+          const { error } = await supabase
+            .from('habits')
+            .update({ goal: computedGoal })
+            .eq('name', habitName);
+          if (error) {
+            console.error('Error updating habit goal', error);
+          }
+        } catch (err) {
+          console.error('Error updating habit goal', err);
+        }
+      } else {
+        console.error(
+          'Selected date does not form a valid goal (must be at least tomorrow)',
+        );
+      }
+    }
     setGoal(false);
     // Reset calendar state to prevent reusing the previous date selection
     setSelectedDate(null);
