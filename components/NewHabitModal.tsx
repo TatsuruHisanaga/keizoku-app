@@ -127,7 +127,7 @@ export default function NewHabitModal({
                     alignItems: 'center',
                   }}
                 >
-                  <Button onPress={() => setGoal(true)} className="mb-1 w-full">
+                  <Button onPress={() => setGoal(true)} className="mb-2 w-full">
                     <ButtonText>目標を設定する</ButtonText>
                   </Button>
                   <Button onPress={handleClose} className="w-full">
@@ -141,13 +141,16 @@ export default function NewHabitModal({
               <ModalHeader>
                 <Box></Box>
                 <Heading size="md" className="text-typography-950 mb-2">
-                  目標を設定しましょう！
+                  目標設定
                 </Heading>
                 <Box></Box>
               </ModalHeader>
               <ModalBody>
                 <Text size="sm" className="text-typography-500 text-center">
-                  今日から始める習慣の目標を設定しましょう！
+                  目標となる日付をマイルストーンに
+                </Text>
+                <Text size="sm" className="text-typography-500 text-center">
+                  設定しましょう！
                 </Text>
               </ModalBody>
               <ModalFooter>
@@ -158,7 +161,7 @@ export default function NewHabitModal({
                     alignItems: 'center',
                   }}
                 >
-                  <HStack className="w-full">
+                  <HStack className="w-full mb-2">
                     <Select
                       className="w-1/2"
                       onValueChange={(value) =>
@@ -166,7 +169,7 @@ export default function NewHabitModal({
                       }
                     >
                       <SelectTrigger className="flex items-center justify-between">
-                        <SelectInput placeholder="選択してください" />
+                        <SelectInput placeholder="選択" />
                         <SelectIcon
                           className="ml-auto mr-2"
                           as={ChevronDownIcon}
