@@ -1,6 +1,6 @@
 import Auth from '@/components/Auth';
 import { supabase } from '@/lib/supabase';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { VStack } from '@/components/ui/vstack';
 import AchievementModal from '../../components/AchievementModal';
@@ -60,7 +60,6 @@ export default function Index() {
   };
 
   const [habits, setHabits] = useState<Habit[]>([]);
-  const [newHabit, setNewHabit] = useState('');
   const [newHabitModalData, setNewHabitModalData] = useState<{
     isOpen: boolean;
     habitName: string;
@@ -80,13 +79,7 @@ export default function Index() {
   });
 
   // habitデータの取得
-  useEffect(() => {
-    if (session?.user) {
-      fetchHabits();
-    }
-  }, [session]);
-
-  const fetchHabits = async () => {
+  const fetchHabits = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('habits')
@@ -111,7 +104,13 @@ export default function Index() {
     } catch (error) {
       console.error('Error fetching habits:', error);
     }
-  };
+  }, [session]);
+
+  useEffect(() => {
+    if (session?.user) {
+      fetchHabits();
+    }
+  }, [session, fetchHabits]);
 
   // 習慣の追加
   const handleAddHabit = async (habitName: string) => {
@@ -288,7 +287,7 @@ export default function Index() {
   const handleAddHabitWrapper = async (habitName: string) => {
     const hasError = await handleAddHabit(habitName);
     if (!hasError) {
-      setNewHabit(habitName);
+      // Removed setNewHabit as newHabit is unused
     }
     return hasError;
   };
