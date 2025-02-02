@@ -147,7 +147,10 @@ export default function NewHabitModal({
               </ModalHeader>
               <ModalBody>
                 <Text size="sm" className="text-typography-500 text-center">
-                  今日から始める習慣の目標を設定しましょう！
+                  目標となる日付をマイルストーンに
+                </Text>
+                <Text size="sm" className="text-typography-500 text-center">
+                  設定しましょう！
                 </Text>
               </ModalBody>
               <ModalFooter>
