@@ -40,6 +40,9 @@ export default function NewHabitModal({
 
   const handleClose = () => {
     setGoal(false);
+    // Reset calendar state to prevent reusing the previous date selection
+    setSelectedDate(null);
+    setDaysDiff(null);
     onClose();
   };
 
