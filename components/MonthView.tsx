@@ -55,7 +55,7 @@ export function MonthView({ habits, currentDate }: MonthViewProps) {
   }
 
   const allCompletedDates = habits.reduce((acc, habit) => {
-    return [...acc, ...habit.completedDates];
+    return [...acc, ...(habit.completedDates || [])];
   }, [] as string[]);
 
   // 日付の各部分がJSTの値と一致するようにローカルのフォーマット関数を使用
