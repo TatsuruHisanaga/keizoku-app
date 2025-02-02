@@ -14,20 +14,6 @@ import { Center } from '@/components/ui/center';
 import { PartyPopper } from 'lucide-react-native';
 import { useState, useEffect, useRef } from 'react';
 import LottieView from 'lottie-react-native';
-import { HStack } from '@/components/ui/hstack';
-import {
-  Select,
-  SelectIcon,
-  SelectInput,
-  SelectItem,
-  SelectTrigger,
-  SelectContent,
-  SelectPortal,
-  SelectDragIndicatorWrapper,
-  SelectDragIndicator,
-} from '@/components/ui/select';
-import { ChevronDownIcon } from '@/components/ui/icon';
-import { Input, InputField } from './ui/input';
 import { Calendar as RNCalendar } from 'react-native-calendars';
 
 interface NewHabitModalProps {
@@ -208,13 +194,20 @@ export default function NewHabitModal({
                   ]}
                   dayNames={['日', '月', '火', '水', '木', '金', '土']}
                 />
-                {selectedDate && (
+                {selectedDate ? (
                   <Text
                     size="sm"
                     className="text-typography-500 text-center mt-2"
                   >
                     選択した日付: {selectedDate.toLocaleDateString()}{' '}
-                    {daysDiff !== null && `(今日から ${daysDiff} 日)`}
+                    {daysDiff !== null && `(今日から ${daysDiff - 1} 日)`}
+                  </Text>
+                ) : (
+                  <Text
+                    size="sm"
+                    className="text-typography-500 text-center mt-2"
+                  >
+                    日付を選択してください
                   </Text>
                 )}
               </ModalBody>
