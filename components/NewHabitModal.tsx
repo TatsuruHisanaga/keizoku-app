@@ -190,6 +190,7 @@ export default function NewHabitModal({
                   markingType="simple"
                   style={{ height: 320, borderRadius: 8 }}
                   current={currentJapanDate}
+                  minDate={currentJapanDate}
                   firstDay={1}
                   monthNames={[
                     '1月',
