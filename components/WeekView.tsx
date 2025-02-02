@@ -147,7 +147,7 @@ export function WeekView({
 
   return (
     <Box className="bg-gray-900 rounded-3xl p-6">
-      <Box className="flex flex-row items-center justify-between mb-6">
+      <Box className="flex flex-row items-center justify-between mb-2">
         <Button
           onPress={() => {
             if (viewMode === 'week') {
@@ -197,9 +197,9 @@ export function WeekView({
               </Text>
             </Button>
           </Box>
-          <Text className="text-white font-medium text-lg">
+          {/* <Text className="text-white font-medium text-lg">
             {viewMode === 'week' ? formatWeekRange() : formatMonthYear()}
-          </Text>
+          </Text> */}
         </Box>
 
         <Button
@@ -216,6 +216,11 @@ export function WeekView({
         >
           <ButtonIcon as={ChevronRightIcon} className="text-gray-400" />
         </Button>
+      </Box>
+      <Box className="flex flex-row items-center justify-between mb-2">
+        <Text className="text-white font-medium text-sm">
+          {viewMode === 'week' ? formatWeekRange() : formatMonthYear()}
+        </Text>
       </Box>
       {viewMode === 'week' ? (
         renderWeekView()
