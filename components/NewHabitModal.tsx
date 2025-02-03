@@ -14,20 +14,8 @@ import { Center } from '@/components/ui/center';
 import { PartyPopper } from 'lucide-react-native';
 import { useState, useEffect, useRef } from 'react';
 import LottieView from 'lottie-react-native';
-import { HStack } from '@/components/ui/hstack';
-import {
-  Select,
-  SelectIcon,
-  SelectInput,
-  SelectItem,
-  SelectTrigger,
-  SelectContent,
-  SelectPortal,
-  SelectDragIndicatorWrapper,
-  SelectDragIndicator,
-} from '@/components/ui/select';
-import { ChevronDownIcon } from '@/components/ui/icon';
-import { Input, InputField } from './ui/input';
+import { Calendar as RNCalendar } from 'react-native-calendars';
+import { supabase } from '@/lib/supabase';
 
 interface NewHabitModalProps {
   isOpen: boolean;
@@ -42,10 +30,41 @@ export default function NewHabitModal({
 }: NewHabitModalProps) {
   const confettiRef = useRef<LottieView | null>(null);
   const [goal, setGoal] = useState(false);
-  const [goalType, setGoalType] = useState('Days');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [daysDiff, setDaysDiff] = useState<number | null>(null);
 
-  const handleClose = () => {
+  // Calculate Japan time (UTC+9) and get current date as YYYY-MM-DD
+  const now = new Date();
+  const japanTime = now.getTime() + 9 * 60 * 60 * 1000;
+  const todayJapan = new Date(japanTime);
+  const currentJapanDate = todayJapan.toISOString().slice(0, 10);
+
+  const handleClose = async () => {
+    // 目標設定モードで日付が選択されている場合、習慣の目標を更新する
+    if (goal && selectedDate && daysDiff !== null) {
+      const computedGoal = daysDiff - 1;
+      if (computedGoal > 0) {
+        try {
+          const { error } = await supabase
+            .from('habits')
+            .update({ goal: computedGoal })
+            .eq('name', habitName);
+          if (error) {
+            console.error('Error updating habit goal', error);
+          }
+        } catch (err) {
+          console.error('Error updating habit goal', err);
+        }
+      } else {
+        console.error(
+          'Selected date does not form a valid goal (must be at least tomorrow)',
+        );
+      }
+    }
     setGoal(false);
+    // Reset calendar state to prevent reusing the previous date selection
+    setSelectedDate(null);
+    setDaysDiff(null);
     onClose();
   };
 
@@ -146,12 +165,76 @@ export default function NewHabitModal({
                 <Box></Box>
               </ModalHeader>
               <ModalBody>
-                <Text size="sm" className="text-typography-500 text-center">
-                  目標となる日付をマイルストーンに
+                <Text
+                  size="sm"
+                  className="text-typography-500 text-center mb-2"
+                >
+                  カレンダーから目標の日付を選択してください。
                 </Text>
-                <Text size="sm" className="text-typography-500 text-center">
-                  設定しましょう！
-                </Text>
+                <RNCalendar
+                  onDayPress={(day: { timestamp: number }) => {
+                    const chosenDate = new Date(day.timestamp);
+                    setSelectedDate(chosenDate);
+
+                    const now = new Date();
+                    const todayDate = new Date(
+                      now.getFullYear(),
+                      now.getMonth(),
+                      now.getDate(),
+                    );
+                    const diffTime = chosenDate.getTime() - todayDate.getTime();
+                    const diffDays = Math.ceil(
+                      diffTime / (1000 * 60 * 60 * 24),
+                    );
+                    setDaysDiff(diffDays);
+                  }}
+                  markedDates={
+                    selectedDate
+                      ? {
+                          [selectedDate.toISOString().split('T')[0]]: {
+                            selected: true,
+                            selectedColor: '#22c55e',
+                          },
+                        }
+                      : {}
+                  }
+                  markingType="simple"
+                  style={{ height: 320, borderRadius: 8 }}
+                  current={currentJapanDate}
+                  minDate={currentJapanDate}
+                  firstDay={1}
+                  monthNames={[
+                    '1月',
+                    '2月',
+                    '3月',
+                    '4月',
+                    '5月',
+                    '6月',
+                    '7月',
+                    '8月',
+                    '9月',
+                    '10月',
+                    '11月',
+                    '12月',
+                  ]}
+                  dayNames={['日', '月', '火', '水', '木', '金', '土']}
+                />
+                {selectedDate ? (
+                  <Text
+                    size="sm"
+                    className="text-typography-500 text-center mt-2"
+                  >
+                    選択した日付: {selectedDate.toLocaleDateString()}{' '}
+                    {daysDiff !== null && `(今日から ${daysDiff - 1} 日)`}
+                  </Text>
+                ) : (
+                  <Text
+                    size="sm"
+                    className="text-typography-500 text-center mt-2"
+                  >
+                    日付を選択してください
+                  </Text>
+                )}
               </ModalBody>
               <ModalFooter>
                 <Box
@@ -161,56 +244,6 @@ export default function NewHabitModal({
                     alignItems: 'center',
                   }}
                 >
-                  <HStack className="w-full mb-2">
-                    <Select
-                      className="w-1/2"
-                      onValueChange={(value) =>
-                        setGoalType(value as 'Days' | 'Daily')
-                      }
-                    >
-                      <SelectTrigger className="flex items-center justify-between">
-                        <SelectInput placeholder="選択" />
-                        <SelectIcon
-                          className="ml-auto mr-2"
-                          as={ChevronDownIcon}
-                        />
-                      </SelectTrigger>
-                      <SelectPortal>
-                        <SelectContent>
-                          <SelectDragIndicatorWrapper>
-                            <SelectDragIndicator />
-                          </SelectDragIndicatorWrapper>
-                          <SelectItem label="日数" value="Days" />
-                          <SelectItem label="日付" value="Daily" />
-                        </SelectContent>
-                      </SelectPortal>
-                    </Select>
-                    {goalType === 'Days' ? (
-                      <Input className="w-1/2">
-                        <InputField placeholder="目標の日数" />
-                      </Input>
-                    ) : (
-                      <Select className="w-1/2">
-                        <SelectTrigger className="flex items-center justify-between">
-                          <SelectInput placeholder="選択してください" />
-                          <SelectIcon
-                            className="ml-auto mr-2"
-                            as={ChevronDownIcon}
-                          />
-                        </SelectTrigger>
-                        <SelectPortal>
-                          <SelectContent>
-                            <SelectDragIndicatorWrapper>
-                              <SelectDragIndicator />
-                            </SelectDragIndicatorWrapper>
-                            <SelectItem label="1日" value="1th" />
-                            <SelectItem label="2日" value="2nd" />
-                            <SelectItem label="3日" value="3rd" />
-                          </SelectContent>
-                        </SelectPortal>
-                      </Select>
-                    )}
-                  </HStack>
                   <Button onPress={handleClose} className="w-full">
                     <ButtonText>始める</ButtonText>
                   </Button>
