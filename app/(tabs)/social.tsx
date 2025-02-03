@@ -91,20 +91,45 @@ export default function Social() {
     const habit = publicHabits.find((h) => h.id === habitId);
     if (!habit) return;
 
-    const currentLikes = habit.likes ?? 0;
     const newLiked = !likedHabits[habitId];
+
+    // 現在のユーザー情報を取得
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError || !user) {
+      console.error('User is not logged in');
+      return;
+    }
+    const userId = user.id;
+
+    if (newLiked) {
+      // いいね追加：likes テーブルに新規レコードを挿入する
+      const { error } = await supabase
+        .from('likes')
+        .insert({ user_id: userId, habit_id: habitId });
+      if (error) {
+        console.error('Error inserting like:', error);
+        return;
+      }
+    } else {
+      // いいね解除：likes テーブルから対象レコードを削除する
+      const { error } = await supabase
+        .from('likes')
+        .delete()
+        .eq('user_id', userId)
+        .eq('habit_id', habitId);
+      if (error) {
+        console.error('Error deleting like:', error);
+        return;
+      }
+    }
+
+    const currentLikes = habit.likes ?? 0;
     const newLikeCount = newLiked
       ? currentLikes + 1
       : Math.max(currentLikes - 1, 0);
-
-    const { error } = await supabase
-      .from('habits')
-      .update({ likes: newLikeCount })
-      .eq('id', habitId);
-    if (error) {
-      console.error('Error updating like count:', error);
-      return;
-    }
 
     setLikedHabits((prev) => ({ ...prev, [habitId]: newLiked }));
     setPublicHabits((prev) =>
@@ -127,16 +152,25 @@ export default function Social() {
             id,
             username,
             avatar_url
-          )
+          ),
+          likes:likes_habit_id_fk (id)
         `,
         )
         .eq('is_public', true)
         .contains('completed_dates', [today])
-        .order('achieved_at', { ascending: true })
+        .order('achieved_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
-      setPublicHabits(data || []);
+      if (data) {
+        const processedData = data.map((habit: any) => ({
+          ...habit,
+          likes: Array.isArray(habit.likes) ? habit.likes.length : 0,
+        }));
+        setPublicHabits(processedData);
+      } else {
+        setPublicHabits([]);
+      }
     } catch (error) {
       console.error('Error fetching public habits:', error);
     } finally {
