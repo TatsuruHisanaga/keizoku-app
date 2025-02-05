@@ -12,6 +12,7 @@ import { BicepsFlexed, Flame, Medal, GraduationCap } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { RefreshControl, ScrollView, TouchableOpacity } from 'react-native';
 import { Icon } from '@/components/ui/icon';
+import { useRouter } from 'expo-router';
 
 interface PublicHabit {
   id: string;
@@ -70,12 +71,12 @@ function StreakBadge({ streak }: StreakBadgeProps) {
   };
 
   const style = getBadgeStyle(streak);
-  const Icon = style.icon;
+  const IconComponent = style.icon;
 
   return (
     <Box className={`${style.bg} px-3 py-1 rounded-full`}>
       <HStack space="xs" className="items-center">
-        <Icon color={style.iconColor} size={16} />
+        <IconComponent color={style.iconColor} size={16} />
         <Text className={`${style.text} font-bold`}>{streak}日連続</Text>
       </HStack>
     </Box>
@@ -83,9 +84,12 @@ function StreakBadge({ streak }: StreakBadgeProps) {
 }
 
 export default function Social() {
+  const router = useRouter();
   const [publicHabits, setPublicHabits] = useState<PublicHabit[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [likedHabits, setLikedHabits] = useState<{ [id: string]: boolean }>({});
+  const [followings, setFollowings] = useState<string[]>([]);
+  const [selectedTab, setSelectedTab] = useState<'all' | 'following'>('all');
 
   const toggleLike = async (habitId: string): Promise<void> => {
     const habit = publicHabits.find((h) => h.id === habitId);
@@ -179,6 +183,26 @@ export default function Social() {
   };
 
   useEffect(() => {
+    const fetchFollowings = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data, error } = await supabase
+        .from('follows')
+        .select('*')
+        .eq('follower_id', user.id);
+      if (error) {
+        console.error('Error fetching followings:', error);
+      } else if (data) {
+        const followedIds = data.map((follow: any) => follow.followed_id);
+        setFollowings(followedIds);
+      }
+    };
+    fetchFollowings();
+  }, []);
+
+  useEffect(() => {
     fetchPublicHabits();
   }, []);
 
@@ -197,8 +221,61 @@ export default function Social() {
     });
   };
 
+  const filteredHabits =
+    selectedTab === 'all'
+      ? publicHabits
+      : publicHabits.filter((habit) => followings.includes(habit.profiles.id));
+
   return (
-    <Box className="h-full">
+    <Box className="h-full bg-white">
+      {/* 固定タブヘッダー */}
+      <Box className="border-b border-gray-200">
+        <Box className="flex-row">
+          <TouchableOpacity
+            onPress={() => setSelectedTab('all')}
+            className="flex-1"
+          >
+            <Box className="py-3 px-4">
+              <Text
+                className={`text-center font-bold ${
+                  selectedTab === 'all'
+                    ? 'text-typography-950'
+                    : 'text-gray-500'
+                }`}
+              >
+                おすすめ
+              </Text>
+              {/* アクティブインジケーター */}
+              {selectedTab === 'all' && (
+                <Box className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 rounded-full mx-4" />
+              )}
+            </Box>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setSelectedTab('following')}
+            className="flex-1"
+          >
+            <Box className="py-3 px-4">
+              <Text
+                className={`text-center font-bold ${
+                  selectedTab === 'following'
+                    ? 'text-typography-950'
+                    : 'text-gray-500'
+                }`}
+              >
+                フォロー中
+              </Text>
+              {/* アクティブインジケーター */}
+              {selectedTab === 'following' && (
+                <Box className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 rounded-full mx-4" />
+              )}
+            </Box>
+          </TouchableOpacity>
+        </Box>
+      </Box>
+
+      {/* スクロール可能なコンテンツエリア */}
       <ScrollView
         className="flex-1"
         refreshControl={
@@ -209,76 +286,73 @@ export default function Social() {
         }
       >
         <Box className="p-4">
-          <Text className="text-xl font-bold mb-4">今日のみんなの取り組み</Text>
           <VStack space="md">
-            {publicHabits.map((habit) => (
-              <Box
+            {filteredHabits.map((habit) => (
+              <TouchableOpacity
                 key={habit.id}
-                className="p-4 bg-white rounded-lg  border border-gray-100"
-                style={{
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.03,
-                  shadowRadius: 2,
-                  elevation: 1,
-                }}
+                onPress={() => router.push(`/profile/${habit.profiles.id}`)}
               >
-                <VStack space="sm">
-                  {/* 習慣名と連続日数を目立たせる */}
-                  <HStack className="items-center justify-between">
-                    <Text className="text-lg font-bold">{habit.name}</Text>
-                    <StreakBadge streak={habit.streak} />
-                  </HStack>
-
-                  {/* ユーザー情報と達成時刻 */}
-                  <HStack space="md" className="items-center">
-                    <Avatar size="sm">
-                      <AvatarFallbackText>
-                        {habit.profiles?.username?.[0]?.toUpperCase() || '?'}
-                      </AvatarFallbackText>
-                      {habit.profiles?.avatar_url && (
-                        <AvatarImage
-                          source={{
-                            uri: habit.profiles.avatar_url,
-                          }}
-                        />
-                      )}
-                    </Avatar>
-                    <Text className="text-sm text-gray-500">
-                      {habit.profiles?.username || '名なしさん'}
-                    </Text>
-                  </HStack>
-
-                  {/* 総達成日数 */}
-                  <Text className="text-sm text-gray-500">
-                    累計{habit.completed_dates?.length || 0}日達成
-                  </Text>
-                  <HStack className="items-center justify-between">
-                    <Text className="text-sm text-gray-400">
-                      {formatTime(habit.achieved_at)}
-                    </Text>
-                    <TouchableOpacity
-                      onPress={() => toggleLike(habit.id)}
-                      className="flex-row items-center"
-                    >
-                      <Icon
-                        as={Flame}
-                        color={likedHabits[habit.id] ? 'red' : 'gray'}
-                        size="lg"
-                      />
-                      <Text className="text-sm text-gray-500 min-w-[20px] text-center">
-                        {habit.likes}
+                <Box
+                  className="p-4 bg-white rounded-lg border border-gray-100"
+                  style={{
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.03,
+                    shadowRadius: 2,
+                    elevation: 1,
+                  }}
+                >
+                  <VStack space="sm">
+                    <HStack className="items-center justify-between">
+                      <Text className="text-lg font-bold">{habit.name}</Text>
+                      <StreakBadge streak={habit.streak} />
+                    </HStack>
+                    <HStack space="md" className="items-center">
+                      <Avatar size="sm">
+                        <AvatarFallbackText>
+                          {habit.profiles?.username?.[0]?.toUpperCase() || '?'}
+                        </AvatarFallbackText>
+                        {habit.profiles?.avatar_url && (
+                          <AvatarImage
+                            source={{ uri: habit.profiles.avatar_url }}
+                          />
+                        )}
+                      </Avatar>
+                      <Text className="text-sm text-gray-500">
+                        {habit.profiles?.username || '名なしさん'}
                       </Text>
-                    </TouchableOpacity>
-                  </HStack>
-                </VStack>
-              </Box>
+                    </HStack>
+                    <Text className="text-sm text-gray-500">
+                      累計{habit.completed_dates?.length || 0}日達成
+                    </Text>
+                    <HStack className="items-center justify-between">
+                      <Text className="text-sm text-gray-400">
+                        {formatTime(habit.achieved_at)}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => toggleLike(habit.id)}
+                        className="flex-row items-center"
+                      >
+                        <Icon
+                          as={Flame}
+                          color={likedHabits[habit.id] ? 'red' : 'gray'}
+                          size="lg"
+                        />
+                        <Text className="text-sm text-gray-500 min-w-[20px] text-center">
+                          {habit.likes}
+                        </Text>
+                      </TouchableOpacity>
+                    </HStack>
+                  </VStack>
+                </Box>
+              </TouchableOpacity>
             ))}
-
-            {publicHabits.length === 0 && (
+            {filteredHabits.length === 0 && (
               <Box className="py-8">
                 <Text className="text-center text-gray-500">
-                  今日はまだ達成された習慣がありません
+                  {selectedTab === 'all'
+                    ? '今日はまだ達成された習慣がありません'
+                    : 'フォロー中のユーザーの投稿はありません'}
                 </Text>
               </Box>
             )}
