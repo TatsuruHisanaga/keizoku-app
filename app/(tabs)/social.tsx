@@ -12,6 +12,7 @@ import { BicepsFlexed, Flame, Medal, GraduationCap } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { RefreshControl, ScrollView, TouchableOpacity } from 'react-native';
 import { Icon } from '@/components/ui/icon';
+import { useRouter } from 'expo-router';
 
 interface PublicHabit {
   id: string;
@@ -83,6 +84,7 @@ function StreakBadge({ streak }: StreakBadgeProps) {
 }
 
 export default function Social() {
+  const router = useRouter();
   const [publicHabits, setPublicHabits] = useState<PublicHabit[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [likedHabits, setLikedHabits] = useState<{ [id: string]: boolean }>({});
@@ -212,69 +214,69 @@ export default function Social() {
           <Text className="text-xl font-bold mb-4">今日のみんなの取り組み</Text>
           <VStack space="md">
             {publicHabits.map((habit) => (
-              <Box
+              <TouchableOpacity
                 key={habit.id}
-                className="p-4 bg-white rounded-lg  border border-gray-100"
-                style={{
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.03,
-                  shadowRadius: 2,
-                  elevation: 1,
-                }}
+                onPress={() => router.push(`/profile/${habit.profiles.id}`)}
               >
-                <VStack space="sm">
-                  {/* 習慣名と連続日数を目立たせる */}
-                  <HStack className="items-center justify-between">
-                    <Text className="text-lg font-bold">{habit.name}</Text>
-                    <StreakBadge streak={habit.streak} />
-                  </HStack>
-
-                  {/* ユーザー情報と達成時刻 */}
-                  <HStack space="md" className="items-center">
-                    <Avatar size="sm">
-                      <AvatarFallbackText>
-                        {habit.profiles?.username?.[0]?.toUpperCase() || '?'}
-                      </AvatarFallbackText>
-                      {habit.profiles?.avatar_url && (
-                        <AvatarImage
-                          source={{
-                            uri: habit.profiles.avatar_url,
-                          }}
-                        />
-                      )}
-                    </Avatar>
-                    <Text className="text-sm text-gray-500">
-                      {habit.profiles?.username || '名なしさん'}
-                    </Text>
-                  </HStack>
-
-                  {/* 総達成日数 */}
-                  <Text className="text-sm text-gray-500">
-                    累計{habit.completed_dates?.length || 0}日達成
-                  </Text>
-                  <HStack className="items-center justify-between">
-                    <Text className="text-sm text-gray-400">
-                      {formatTime(habit.achieved_at)}
-                    </Text>
-                    <TouchableOpacity
-                      onPress={() => toggleLike(habit.id)}
-                      className="flex-row items-center"
-                    >
-                      <Icon
-                        as={Flame}
-                        color={likedHabits[habit.id] ? 'red' : 'gray'}
-                        size="lg"
-                      />
-                      <Text className="text-sm text-gray-500 min-w-[20px] text-center">
-                        {habit.likes}
+                <Box
+                  className="p-4 bg-white rounded-lg border border-gray-100"
+                  style={{
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.03,
+                    shadowRadius: 2,
+                    elevation: 1,
+                  }}
+                >
+                  <VStack space="sm">
+                    {/* 習慣名と連続日数 */}
+                    <HStack className="items-center justify-between">
+                      <Text className="text-lg font-bold">{habit.name}</Text>
+                      <StreakBadge streak={habit.streak} />
+                    </HStack>
+                    {/* ユーザー情報（ここをタップすることでプロフィールに遷移） */}
+                    <HStack space="md" className="items-center">
+                      <Avatar size="sm">
+                        <AvatarFallbackText>
+                          {habit.profiles?.username?.[0]?.toUpperCase() || '?'}
+                        </AvatarFallbackText>
+                        {habit.profiles?.avatar_url && (
+                          <AvatarImage
+                            source={{ uri: habit.profiles.avatar_url }}
+                          />
+                        )}
+                      </Avatar>
+                      <Text className="text-sm text-gray-500">
+                        {habit.profiles?.username || '名なしさん'}
                       </Text>
-                    </TouchableOpacity>
-                  </HStack>
-                </VStack>
-              </Box>
+                    </HStack>
+                    {/* そのほかの情報 */}
+                    <Text className="text-sm text-gray-500">
+                      累計{habit.completed_dates?.length || 0}日達成
+                    </Text>
+                    {/* いいねボタンなど */}
+                    <HStack className="items-center justify-between">
+                      <Text className="text-sm text-gray-400">
+                        {formatTime(habit.achieved_at)}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => toggleLike(habit.id)}
+                        className="flex-row items-center"
+                      >
+                        <Icon
+                          as={Flame}
+                          color={likedHabits[habit.id] ? 'red' : 'gray'}
+                          size="lg"
+                        />
+                        <Text className="text-sm text-gray-500 min-w-[20px] text-center">
+                          {habit.likes}
+                        </Text>
+                      </TouchableOpacity>
+                    </HStack>
+                  </VStack>
+                </Box>
+              </TouchableOpacity>
             ))}
-
             {publicHabits.length === 0 && (
               <Box className="py-8">
                 <Text className="text-center text-gray-500">
