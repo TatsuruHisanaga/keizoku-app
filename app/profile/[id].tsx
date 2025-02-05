@@ -179,8 +179,8 @@ export default function ProfileScreen() {
                   <Text className="text-sm text-gray-500">
                     {new Date(habit.achieved_at).toLocaleString('ja-JP', {
                       timeZone: 'Asia/Tokyo',
-                      hour: '2-digit',
-                      minute: '2-digit',
+                      dateStyle: 'medium',
+                      timeStyle: 'short',
                     })}
                   </Text>
                 </Box>
