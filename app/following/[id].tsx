@@ -69,10 +69,17 @@ export default function FollowingScreen() {
       }
 
       const followingSet = new Set(currentFollowing.map((f) => f.followed_id));
-      const processedFollowing = followingData.map((follow) => ({
-        ...follow,
-        is_following: followingSet.has(follow.profiles.id),
-      }));
+      const processedFollowing = followingData.map((follow) => {
+        // profiles が配列なら最初の要素を取得
+        const profile = Array.isArray(follow.profiles)
+          ? follow.profiles[0]
+          : follow.profiles;
+        return {
+          ...follow,
+          profiles: profile, // 単一のオブジェクトに変換
+          is_following: followingSet.has(profile.id),
+        };
+      });
 
       setFollowing(processedFollowing);
     } catch (error) {
