@@ -12,6 +12,7 @@ import NewHabitModal from '@/components/NewHabitModal';
 import { Text } from '@/components/ui/text';
 import HabitFab from '@/components/HabitFab';
 import { ScrollView } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -154,6 +155,9 @@ export default function Index() {
   // 習慣の完了状態の切り替え
   const toggleComplete = async (habitId: string, date: string) => {
     try {
+      // Trigger light feedback for toggling.
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
       const habit = habits.find((h) => h.id === habitId);
       if (!habit) {
         console.error('Habit not found');
@@ -243,6 +247,8 @@ export default function Index() {
       );
     } catch (error: any) {
       console.error('Error toggling habit:', error.message || error);
+      // On error, trigger error haptic feedback.
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       alert('習慣の更新中にエラーが発生しました。もう一度お試しください。');
     }
   };
@@ -256,6 +262,9 @@ export default function Index() {
 
       if (error) throw error;
 
+      // On successful editing, trigger light feedback.
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
       setHabits(
         habits.map((habit) =>
           habit.id === habitId ? { ...habit, name: newName } : habit,
@@ -263,6 +272,8 @@ export default function Index() {
       );
     } catch (error: any) {
       console.error('Error updating habit name:', error);
+      // On error, trigger error haptic feedback.
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
 
