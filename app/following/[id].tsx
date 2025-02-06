@@ -133,9 +133,8 @@ export default function FollowingScreen() {
   return (
     <Box className="flex-1 bg-white">
       <Box className="p-4 flex-row items-center justify-between border-b border-gray-200">
-        <Button onPress={() => router.back()}>
-          <ButtonText>戻る</ButtonText>
-        </Button>
+        <Box className="w-[60px]" />
+
         <Text className="font-bold text-lg">フォロー中</Text>
         <Box className="w-[60px]" />
       </Box>

@@ -163,11 +163,6 @@ export default function ProfileScreen() {
 
   return (
     <Box className="flex-1 bg-white">
-      <Box className="p-4 flex-row items-center">
-        <Button onPress={() => router.back()}>
-          <ButtonText>戻る</ButtonText>
-        </Button>
-      </Box>
       <ScrollView>
         <Box className="p-4">
           <Box className="items-center">

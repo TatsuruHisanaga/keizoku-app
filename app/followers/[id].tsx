@@ -125,9 +125,8 @@ export default function FollowersScreen() {
   return (
     <Box className="flex-1 bg-white">
       <Box className="p-4 flex-row items-center justify-between border-b border-gray-200">
-        <Button onPress={() => router.back()}>
-          <ButtonText>戻る</ButtonText>
-        </Button>
+        <Box className="w-[60px]" />
+
         <Text className="font-bold text-lg">フォロワー</Text>
         <Box className="w-[60px]" />
       </Box>
