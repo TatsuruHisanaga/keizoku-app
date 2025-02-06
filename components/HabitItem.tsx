@@ -373,7 +373,7 @@ export function HabitItem({
                 <Box className="flex flex-row gap-2">
                   {isMenuOpen ? (
                     <>
-                      <Button
+                      {/* <Button
                         variant="solid"
                         size="sm"
                         className="w-10 h-10 rounded-xl border border-gray-300"
@@ -385,7 +385,7 @@ export function HabitItem({
                           className="h-5 w-5"
                           style={{ color: '#6b7280' }}
                         />
-                      </Button>
+                      </Button> */}
                       <Button
                         variant="solid"
                         size="sm"
