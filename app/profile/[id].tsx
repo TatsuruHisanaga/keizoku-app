@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, Link } from 'expo-router';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
 import {
@@ -11,12 +11,15 @@ import {
 import { Button, ButtonText } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { HStack } from '@/components/ui/hstack';
 
 interface Profile {
   id: string;
   username: string;
   bio: string;
   avatar_url: string;
+  followers_count?: number;
+  following_count?: number;
 }
 
 interface Habit {
@@ -34,6 +37,8 @@ export default function ProfileScreen() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
 
   const fetchProfile = async () => {
     try {
@@ -89,10 +94,32 @@ export default function ProfileScreen() {
     }
   };
 
+  const fetchFollowCounts = async () => {
+    try {
+      const { count: followersCount, error: followersError } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact' })
+        .eq('followed_id', id);
+
+      const { count: followingCount, error: followingError } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact' })
+        .eq('follower_id', id);
+
+      if (!followersError && !followingError) {
+        setFollowersCount(followersCount || 0);
+        setFollowingCount(followingCount || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching follow counts:', error);
+    }
+  };
+
   useEffect(() => {
     fetchProfile();
     fetchHabits();
     fetchFollowStatus();
+    fetchFollowCounts();
     setLoading(false);
   }, [id, user]);
 
@@ -157,6 +184,27 @@ export default function ProfileScreen() {
             <Text className="mt-1 text-gray-600">
               {profile.bio || '自己紹介がありません'}
             </Text>
+
+            <HStack space="md" className="mt-4 mb-4">
+              <Link href={`/followers/${id}`} asChild>
+                <TouchableOpacity>
+                  <Box className="items-center px-4">
+                    <Text className="font-bold">{followersCount}</Text>
+                    <Text className="text-gray-600">フォロワー</Text>
+                  </Box>
+                </TouchableOpacity>
+              </Link>
+
+              <Link href={`/following/${id}`} asChild>
+                <TouchableOpacity>
+                  <Box className="items-center px-4">
+                    <Text className="font-bold">{followingCount}</Text>
+                    <Text className="text-gray-600">フォロー中</Text>
+                  </Box>
+                </TouchableOpacity>
+              </Link>
+            </HStack>
+
             {user && user.id !== id && (
               <Button onPress={handleFollowToggle} className="mt-4">
                 <ButtonText>
