@@ -16,6 +16,9 @@ import { VStack } from '@/components/ui/vstack';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { LogOut, SquarePen } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from 'expo-router';
+import { TouchableOpacity } from 'react-native';
+import { HStack } from '@/components/ui/hstack';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -26,6 +29,10 @@ export default function Index() {
   const [avatar, setAvatar] = useState('');
   const [uploading, setUploading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [followersCount, setFollowersCount] = useState<number>(0);
+  const [followingCount, setFollowingCount] = useState<number>(0);
+
+  const router = useRouter();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -58,6 +65,35 @@ export default function Index() {
             setAvatar(data.avatar_url || '');
           }
         });
+    }
+  }, [session]);
+
+  useEffect(() => {
+    if (session && session.user) {
+      const fetchFollowCounts = async () => {
+        try {
+          const { count: fetchedFollowersCount, error: followersError } =
+            await supabase
+              .from('follows')
+              .select('*', { count: 'exact' })
+              .eq('followed_id', session.user.id);
+
+          const { count: fetchedFollowingCount, error: followingError } =
+            await supabase
+              .from('follows')
+              .select('*', { count: 'exact' })
+              .eq('follower_id', session.user.id);
+
+          if (!followersError && !followingError) {
+            setFollowersCount(fetchedFollowersCount || 0);
+            setFollowingCount(fetchedFollowingCount || 0);
+          }
+        } catch (error) {
+          console.error('Error fetching follow counts:', error);
+        }
+      };
+
+      fetchFollowCounts();
     }
   }, [session]);
 
@@ -170,31 +206,46 @@ export default function Index() {
         <VStack space="lg" className="p-6">
           <Text className="text-xl font-semibold">プロフィール</Text>
 
-          <VStack space="md" className="items-center">
-            <Pressable
-              onPress={isEditing ? pickImage : undefined}
-              className="mb-4 relative"
-            >
-              <Avatar size="lg" style={{ opacity: isEditing ? 0.7 : 1 }}>
-                <AvatarFallbackText>
-                  {username?.[0]?.toUpperCase() || '?'}
-                </AvatarFallbackText>
-                {avatar && (
-                  <AvatarImage
-                    source={{
-                      uri: avatar,
-                    }}
-                  />
+          <VStack space="md" className="items-center w-full">
+            <HStack space="lg" className="items-center w-full">
+              <Pressable
+                onPress={isEditing ? pickImage : undefined}
+                className="relative"
+              >
+                <Avatar size="lg" style={{ opacity: isEditing ? 0.7 : 1 }}>
+                  <AvatarFallbackText>
+                    {username?.[0]?.toUpperCase() || '?'}
+                  </AvatarFallbackText>
+                  {avatar && <AvatarImage source={{ uri: avatar }} />}
+                </Avatar>
+                {isEditing && (
+                  <Box className="absolute right-0 bottom-0 bg-gray-100 rounded-full p-1">
+                    <Icon as={SquarePen} size="sm" className="text-gray-600" />
+                  </Box>
                 )}
-              </Avatar>
-              {isEditing && (
-                <Box className="absolute right-0 bottom-0 bg-gray-100 rounded-full p-1">
-                  <Icon as={SquarePen} size="sm" className="text-gray-600" />
-                </Box>
-              )}
-            </Pressable>
+              </Pressable>
 
-            <VStack space="sm" className="w-full">
+              <HStack space="md">
+                <TouchableOpacity
+                  onPress={() => router.push(`/followers/${session.user.id}`)}
+                >
+                  <Box className="items-center">
+                    <Text className="font-bold">{followersCount}</Text>
+                    <Text className="text-gray-600">フォロワー</Text>
+                  </Box>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => router.push(`/following/${session.user.id}`)}
+                >
+                  <Box className="items-center">
+                    <Text className="font-bold">{followingCount}</Text>
+                    <Text className="text-gray-600">フォロー中</Text>
+                  </Box>
+                </TouchableOpacity>
+              </HStack>
+            </HStack>
+
+            <VStack space="sm" className="w-full mt-4">
               <Text className="text-sm text-gray-600 mb-1">
                 登録中のメールアドレス
               </Text>
@@ -243,62 +294,62 @@ export default function Index() {
                 )}
               </Box>
             </VStack>
+          </VStack>
 
-            <VStack space="sm" className="w-full mt-6">
-              {isEditing ? (
-                uploading ? (
-                  <ActivityIndicator size="large" color="#0000ff" />
-                ) : (
-                  <>
-                    <Button
-                      variant="solid"
-                      onPress={() => {
-                        handleSave();
-                        setIsEditing(false);
-                      }}
-                      className="w-full"
-                      style={{ backgroundColor: '#333333' }}
-                    >
-                      <ButtonText className="text-white text-base">
-                        変更を保存
-                      </ButtonText>
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      onPress={handleCancel}
-                      className="w-full border-gray-300"
-                    >
-                      <ButtonText className="text-gray-600 text-base">
-                        キャンセル
-                      </ButtonText>
-                    </Button>
-                  </>
-                )
+          <VStack space="sm" className="w-full mt-6">
+            {isEditing ? (
+              uploading ? (
+                <ActivityIndicator size="large" color="#0000ff" />
               ) : (
-                <Button
-                  variant="outline"
-                  onPress={handleEditStart}
-                  className="w-full border-gray-300"
-                >
-                  <ButtonText className="text-gray-600 text-base">
-                    編集
-                  </ButtonText>
-                  <ButtonIcon as={SquarePen} className="text-gray-600" />
-                </Button>
-              )}
+                <>
+                  <Button
+                    variant="solid"
+                    onPress={() => {
+                      handleSave();
+                      setIsEditing(false);
+                    }}
+                    className="w-full"
+                    style={{ backgroundColor: '#333333' }}
+                  >
+                    <ButtonText className="text-white text-base">
+                      変更を保存
+                    </ButtonText>
+                  </Button>
 
+                  <Button
+                    variant="outline"
+                    onPress={handleCancel}
+                    className="w-full border-gray-300"
+                  >
+                    <ButtonText className="text-gray-600 text-base">
+                      キャンセル
+                    </ButtonText>
+                  </Button>
+                </>
+              )
+            ) : (
               <Button
                 variant="outline"
-                onPress={handleLogout}
-                className="w-full border-red-500"
+                onPress={handleEditStart}
+                className="w-full border-gray-300"
               >
-                <ButtonText className="text-red-500 text-base">
-                  ログアウト
+                <ButtonText className="text-gray-600 text-base">
+                  編集
                 </ButtonText>
-                <ButtonIcon as={LogOut} className="text-red-500" />
+                <ButtonIcon as={SquarePen} className="text-gray-600" />
               </Button>
-            </VStack>
+            )}
+
+            <Button
+              variant="outline"
+              onPress={handleLogout}
+              className="w-full border-red-500"
+            >
+              <ButtonText className="text-red-500 text-base">
+                ログアウト
+              </ButtonText>
+              <ButtonIcon as={LogOut} className="text-red-500" />
+            </Button>
           </VStack>
         </VStack>
       ) : (
