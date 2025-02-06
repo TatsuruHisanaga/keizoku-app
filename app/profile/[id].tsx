@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import { ScrollView, TouchableOpacity, Pressable } from 'react-native';
 import { useRouter, useLocalSearchParams, Link } from 'expo-router';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
@@ -165,25 +165,23 @@ export default function ProfileScreen() {
     <Box className="flex-1 bg-white">
       <ScrollView>
         <Box className="p-4">
-          <Box className="items-center">
-            <Avatar size="xl">
-              {profile.avatar_url ? (
-                <AvatarImage source={{ uri: profile.avatar_url }} />
-              ) : (
-                <AvatarFallbackText>
-                  {profile.username?.[0]?.toUpperCase() || '?'}
-                </AvatarFallbackText>
-              )}
-            </Avatar>
-            <Text className="mt-2 text-xl font-bold">{profile.username}</Text>
-            <Text className="mt-1 text-gray-600">
-              {profile.bio || '自己紹介がありません'}
-            </Text>
+          <HStack space="lg" className="items-center w-full mb-6">
+            <Pressable className="relative">
+              <Avatar size="lg">
+                {profile.avatar_url ? (
+                  <AvatarImage source={{ uri: profile.avatar_url }} />
+                ) : (
+                  <AvatarFallbackText>
+                    {profile.username?.[0]?.toUpperCase() || '?'}
+                  </AvatarFallbackText>
+                )}
+              </Avatar>
+            </Pressable>
 
-            <HStack space="md" className="mt-4 mb-4">
+            <HStack space="md">
               <Link href={`/followers/${id}`} asChild>
                 <TouchableOpacity>
-                  <Box className="items-center px-4">
+                  <Box className="items-center">
                     <Text className="font-bold">{followersCount}</Text>
                     <Text className="text-gray-600">フォロワー</Text>
                   </Box>
@@ -192,7 +190,7 @@ export default function ProfileScreen() {
 
               <Link href={`/following/${id}`} asChild>
                 <TouchableOpacity>
-                  <Box className="items-center px-4">
+                  <Box className="items-center">
                     <Text className="font-bold">{followingCount}</Text>
                     <Text className="text-gray-600">フォロー中</Text>
                   </Box>
@@ -201,12 +199,23 @@ export default function ProfileScreen() {
             </HStack>
 
             {user && user.id !== id && (
-              <Button onPress={handleFollowToggle} className="mt-4">
+              <Button
+                onPress={handleFollowToggle}
+                variant="solid"
+                className="border-gray-300"
+              >
                 <ButtonText>
                   {isFollowing ? 'フォロー解除' : 'フォローする'}
                 </ButtonText>
               </Button>
             )}
+          </HStack>
+
+          <Box className="items-start">
+            <Text className="text-xl font-bold">{profile.username}</Text>
+            <Text className="mt-1">
+              {profile.bio || '自己紹介がありません'}
+            </Text>
           </Box>
           <Box className="mt-6">
             <Text className="text-lg font-bold mb-2">タイムライン</Text>
