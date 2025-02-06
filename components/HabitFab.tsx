@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/modal';
 import { Heading } from '@/components/ui/heading';
 import { VStack } from '@/components/ui/vstack';
+import * as Haptics from 'expo-haptics';
 
 type HabitFabProps = {
   onAddHabit: (habitName: string) => Promise<boolean>;
@@ -37,6 +38,7 @@ export default function HabitFab({
 
   const handleSubmit = async () => {
     if (maxHabitsReached) {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       alert('習慣は3個までしか追加できません');
       setShowModal(false);
       return;
@@ -45,6 +47,7 @@ export default function HabitFab({
     const habitText = habitTextRef.current;
     const hasError = await onAddHabit(habitText);
     if (hasError) {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       setShowError(true);
       if (!habitText.trim()) {
         setErrorType('empty');
@@ -54,6 +57,7 @@ export default function HabitFab({
         setErrorType('duplicate');
       }
     } else {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       setShowError(false);
       setErrorType(null);
       habitTextRef.current = '';

@@ -13,6 +13,7 @@ import { supabase } from '@/lib/supabase';
 import { RefreshControl, ScrollView, TouchableOpacity } from 'react-native';
 import { Icon } from '@/components/ui/icon';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 
 interface PublicHabit {
   id: string;
@@ -92,33 +93,34 @@ export default function Social() {
   const [selectedTab, setSelectedTab] = useState<'all' | 'following'>('all');
 
   const toggleLike = async (habitId: string): Promise<void> => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
     const habit = publicHabits.find((h) => h.id === habitId);
     if (!habit) return;
 
     const newLiked = !likedHabits[habitId];
 
-    // 現在のユーザー情報を取得
     const {
       data: { user },
       error: userError,
     } = await supabase.auth.getUser();
     if (userError || !user) {
       console.error('User is not logged in');
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
     const userId = user.id;
 
     if (newLiked) {
-      // いいね追加：likes テーブルに新規レコードを挿入する
       const { error } = await supabase
         .from('likes')
         .insert({ user_id: userId, habit_id: habitId });
       if (error) {
         console.error('Error inserting like:', error);
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         return;
       }
     } else {
-      // いいね解除：likes テーブルから対象レコードを削除する
       const { error } = await supabase
         .from('likes')
         .delete()
@@ -126,6 +128,7 @@ export default function Social() {
         .eq('habit_id', habitId);
       if (error) {
         console.error('Error deleting like:', error);
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         return;
       }
     }
@@ -144,7 +147,6 @@ export default function Social() {
   const fetchPublicHabits = async () => {
     setRefreshing(true);
     try {
-      // 今日の日付を取得（YYYY-MM-DD形式）
       const today = new Date().toISOString().split('T')[0];
 
       const { data, error } = await supabase
@@ -228,7 +230,6 @@ export default function Social() {
 
   return (
     <Box className="h-full bg-white">
-      {/* 固定タブヘッダー */}
       <Box className="border-b border-gray-200">
         <Box className="flex-row">
           <TouchableOpacity
@@ -245,7 +246,6 @@ export default function Social() {
               >
                 おすすめ
               </Text>
-              {/* アクティブインジケーター */}
               {selectedTab === 'all' && (
                 <Box className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 rounded-full mx-4" />
               )}
@@ -266,7 +266,6 @@ export default function Social() {
               >
                 フォロー中
               </Text>
-              {/* アクティブインジケーター */}
               {selectedTab === 'following' && (
                 <Box className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 rounded-full mx-4" />
               )}
@@ -275,7 +274,6 @@ export default function Social() {
         </Box>
       </Box>
 
-      {/* スクロール可能なコンテンツエリア */}
       <ScrollView
         className="flex-1"
         refreshControl={
