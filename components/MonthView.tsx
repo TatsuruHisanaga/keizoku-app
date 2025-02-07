@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box } from './ui/box';
 import { Text } from './ui/text';
+import { formatDate, getGoalDateStr } from '@/utils/dateHelpers';
 
 interface Habit {
   id: string;
@@ -59,32 +60,12 @@ export function MonthView({ habits, currentDate }: MonthViewProps) {
     return [...acc, ...(habit.completedDates || [])];
   }, [] as string[]);
 
-  // 日付の各部分がJSTの値と一致するようにローカルのフォーマット関数を使用
-  const formatDate = (date: Date) => {
-    const y = date.getFullYear();
-    const m = (date.getMonth() + 1).toString().padStart(2, '0');
-    const d = date.getDate().toString().padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  };
   const today = formatDate(new Date());
 
-  // 目標日を計算する関数を追加
-  const calculateGoalDates = () => {
-    const goalDates: string[] = [];
-    const today = new Date();
-
-    habits.forEach((habit) => {
-      if (habit.goal) {
-        const goalDate = new Date(today);
-        goalDate.setDate(goalDate.getDate() + habit.goal);
-        goalDates.push(formatDate(goalDate));
-      }
-    });
-
-    return goalDates;
-  };
-
-  const goalDates = calculateGoalDates();
+  // 目標日を各 habit ごとに算出して配列にする
+  const goalDates = habits
+    .filter((habit) => habit.goal)
+    .map((habit) => getGoalDateStr(habit.goal));
 
   return (
     <Box className="bg-gray-800 rounded-xl p-4">

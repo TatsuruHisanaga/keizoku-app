@@ -4,12 +4,14 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@/components/ui/icon';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { MonthView } from './MonthView';
+import { formatDate, getGoalDateStr } from '@/utils/dateHelpers';
 
 interface WeekViewProps {
   habits: {
     id: string;
     name: string;
     completedDates: string[];
+    goal?: number;
   }[];
   onToggle: (habitId: string, date: string) => void;
   achievedDates?: string[];
@@ -90,50 +92,55 @@ export function WeekView({
             </Text>
           </Box>
         ) : (
-          memoizedHabits.map((habit) => (
-            <Box
-              key={habit.id}
-              className="bg-gray-800 rounded-xl px-4 py-2 mb-2"
-            >
-              <Box className="mb-4">
-                <Box>
-                  <Text className="text-white font-medium mb-2">
-                    {habit.name}
-                  </Text>
-                </Box>
-                <Box className="flex flex-row justify-between">
-                  {weekDates.map((dateObj) => {
-                    const dateStr = dateObj.toISOString().split('T')[0];
-                    const isFuture = dateStr > today;
-                    const completedDates = habit?.completedDates ?? [];
-                    const isCompleted = completedDates.includes(dateStr);
-                    const isToday = dateStr === today;
+          memoizedHabits.map((habit) => {
+            const computedGoalDateStr = getGoalDateStr(habit.goal);
 
-                    return (
-                      <Button
-                        key={dateStr}
-                        onPress={() => onToggle(habit.id, dateStr)}
-                        disabled={isFuture}
-                        className={`p-0 w-10 h-10 rounded-lg
-                          ${isCompleted ? 'bg-teal-500' : 'bg-gray-700'} 
-                          ${isToday ? 'border-2 border-teal-300' : ''}
-                          ${isFuture ? 'opacity-50' : ''}
-                        `}
-                      >
-                        <ButtonText
-                          className={`font-semibold
-                            ${isCompleted ? 'text-white' : 'text-gray-400'}
+            return (
+              <Box
+                key={habit.id}
+                className="bg-gray-800 rounded-xl px-4 py-2 mb-2"
+              >
+                <Box className="mb-4">
+                  <Box>
+                    <Text className="text-white font-medium mb-2">
+                      {habit.name}
+                    </Text>
+                  </Box>
+                  <Box className="flex flex-row justify-between">
+                    {weekDates.map((dateObj) => {
+                      const dateStr = dateObj.toISOString().split('T')[0];
+                      const isFuture = dateStr > today;
+                      const completedDates = habit?.completedDates ?? [];
+                      const isCompleted = completedDates.includes(dateStr);
+                      const isToday = dateStr === today;
+                      const isGoalDate = computedGoalDateStr === dateStr;
+
+                      return (
+                        <Button
+                          key={dateStr}
+                          onPress={() => onToggle(habit.id, dateStr)}
+                          disabled={isFuture}
+                          className={`p-0 w-10 h-10 rounded-lg
+                            ${isCompleted ? 'bg-teal-500' : 'bg-gray-700'}
+                            ${isGoalDate ? 'border-2 border-orange-400' : isToday ? 'border-2 border-teal-300' : ''}
+                            ${isFuture ? 'opacity-50' : ''}
                           `}
                         >
-                          {dateObj.getDate().toString()}
-                        </ButtonText>
-                      </Button>
-                    );
-                  })}
+                          <ButtonText
+                            className={`font-semibold
+                              ${isCompleted ? 'text-white' : 'text-gray-400'}
+                            `}
+                          >
+                            {dateObj.getDate().toString()}
+                          </ButtonText>
+                        </Button>
+                      );
+                    })}
+                  </Box>
                 </Box>
               </Box>
-            </Box>
-          ))
+            );
+          })
         )}
       </Box>
     );
