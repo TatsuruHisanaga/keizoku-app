@@ -58,6 +58,7 @@ export default function Index() {
     totalDays: number;
     is_public: boolean;
     achieved_at?: string;
+    goal?: number;
   };
 
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -99,6 +100,7 @@ export default function Index() {
           totalDays: habit.total_days || 0,
           is_public: habit.is_public || true,
           achieved_at: habit.achieved_at,
+          goal: habit.goal,
         }));
         setHabits(formattedData);
       }
@@ -351,6 +353,7 @@ export default function Index() {
                   setNewHabitModalData((prev) => ({ ...prev, isOpen: false }))
                 }
                 habitName={newHabitModalData.habitName}
+                onGoalSet={fetchHabits}
               />
 
               {/* 週間ビュー */}

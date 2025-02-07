@@ -6,6 +6,7 @@ interface Habit {
   id: string;
   name: string;
   completedDates: string[];
+  goal?: number;
 }
 
 interface MonthViewProps {
@@ -67,6 +68,24 @@ export function MonthView({ habits, currentDate }: MonthViewProps) {
   };
   const today = formatDate(new Date());
 
+  // 目標日を計算する関数を追加
+  const calculateGoalDates = () => {
+    const goalDates: string[] = [];
+    const today = new Date();
+
+    habits.forEach((habit) => {
+      if (habit.goal) {
+        const goalDate = new Date(today);
+        goalDate.setDate(goalDate.getDate() + habit.goal);
+        goalDates.push(formatDate(goalDate));
+      }
+    });
+
+    return goalDates;
+  };
+
+  const goalDates = calculateGoalDates();
+
   return (
     <Box className="bg-gray-800 rounded-xl p-4">
       {/* Weekday header (Monday-first) */}
@@ -89,6 +108,8 @@ export function MonthView({ habits, currentDate }: MonthViewProps) {
             const isCompleted = allCompletedDates.includes(dateStr);
             const isToday = dateStr === today;
             const isCurrentMonth = day.getMonth() === month;
+            const isGoalDate = goalDates.includes(dateStr);
+
             return (
               <Box key={di} className="flex-1 flex items-center justify-center">
                 <Box
@@ -96,6 +117,7 @@ export function MonthView({ habits, currentDate }: MonthViewProps) {
                     w-10 h-10 flex items-center justify-center rounded-lg
                     ${isCompleted ? 'bg-teal-500' : 'bg-transparent'}
                     ${isToday ? 'border-2 border-teal-300' : ''}
+                    ${isGoalDate ? 'border-2 border-orange-400' : ''}
                     ${!isCurrentMonth ? 'opacity-50' : ''}
                   `}
                 >
