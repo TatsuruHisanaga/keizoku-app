@@ -34,17 +34,44 @@ export async function triggerNotification(
   let body = '';
 
   switch (type) {
-    case 'follow':
-      // data.senderName を渡す前提
-      body = `${data.senderName}さんがあなたをフォローしました！`;
+    case 'follow': {
+      // Retrieve sender's username from the profiles table using senderId
+      let username = data.senderName;
+      if (data.senderId) {
+        const { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', data.senderId)
+          .single();
+        if (error) {
+          console.error("Error fetching sender's username:", error);
+        } else if (profileData) {
+          username = profileData.username;
+        }
+      }
+      body = `${username}さんがあなたをフォローしました！`;
       break;
-    case 'like':
-      body = `${data.senderName}さんがあなたの習慣にいいねしました！`;
-      // オプションで、data.habitName などを付加する
+    }
+    case 'like': {
+      let username = data.senderName;
+      if (data.senderId) {
+        const { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', data.senderId)
+          .single();
+        if (error) {
+          console.error("Error fetching sender's username:", error);
+        } else if (profileData) {
+          username = profileData.username;
+        }
+      }
+      body = `${username}さんがあなたの習慣にいいねしました！`;
       if (data.habitName) {
         body += ` [${data.habitName}]`;
       }
       break;
+    }
     case 'reminder':
       body = '今日取り組んだ習慣をタップで記録しましょう！';
       break;
