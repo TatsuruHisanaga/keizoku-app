@@ -45,7 +45,6 @@
     "expo-auth-session": "~6.0.2",
     "expo-av": "~15.0.2",
     "expo-blur": "~14.0.2",
-    "expo-calendar": "~14.0.6",
     "expo-constants": "~17.0.5",
     "expo-font": "~13.0.3",
     "expo-haptics": "~14.0.1",
