@@ -161,9 +161,6 @@ export default function NotificationsScreen() {
   return (
     <Box className="flex-1 bg-white">
       <VStack className="flex-1 p-4 space-y-4">
-        <Text className="text-xs text-gray-500">
-          Your Expo push token: {expoPushToken}
-        </Text>
         <FlatList
           data={notifications}
           keyExtractor={(item) => item.id}
