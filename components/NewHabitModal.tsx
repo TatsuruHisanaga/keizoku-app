@@ -21,12 +21,14 @@ interface NewHabitModalProps {
   isOpen: boolean;
   onClose: () => void;
   habitName: string;
+  onGoalSet?: () => void;
 }
 
 export default function NewHabitModal({
   isOpen,
   onClose,
   habitName,
+  onGoalSet,
 }: NewHabitModalProps) {
   const confettiRef = useRef<LottieView | null>(null);
   const [goal, setGoal] = useState(false);
@@ -51,6 +53,9 @@ export default function NewHabitModal({
             .eq('name', habitName);
           if (error) {
             console.error('Error updating habit goal', error);
+          } else {
+            // 目標設定が成功したら onGoalSet を呼び出す
+            onGoalSet?.();
           }
         } catch (err) {
           console.error('Error updating habit goal', err);
