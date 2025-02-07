@@ -1,6 +1,6 @@
 // app/(tabs)/notifications.tsx
 import { useState, useEffect, useRef } from 'react';
-import { Platform, FlatList } from 'react-native';
+import { Platform, FlatList, RefreshControl } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
@@ -37,6 +37,7 @@ export default function NotificationsScreen() {
   >([]);
   const notificationListener = useRef<Notifications.EventSubscription>();
   const responseListener = useRef<Notifications.EventSubscription>();
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     registerForPushNotificationsAsync()
@@ -93,10 +94,14 @@ export default function NotificationsScreen() {
   }, []);
 
   async function fetchNotifications() {
+    setRefreshing(true);
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setRefreshing(false);
+      return;
+    }
 
     const { data, error } = await supabase
       .from('notifications')
@@ -106,10 +111,10 @@ export default function NotificationsScreen() {
 
     if (error) {
       console.error('Error fetching notifications:', error);
-      return;
+    } else if (data) {
+      setNotifications(data);
     }
-
-    setNotifications(data);
+    setRefreshing(false);
   }
 
   const markAsRead = async (id: string) => {
@@ -202,6 +207,12 @@ export default function NotificationsScreen() {
               renderItem={renderItem}
               contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
               showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={fetchNotifications}
+                />
+              }
             />
             <Box className="absolute bottom-4 left-4 right-4 space-y-2">
               <Button
