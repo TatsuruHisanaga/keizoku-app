@@ -50,6 +50,19 @@ export default function Index() {
     return maxStreak;
   }
 
+  // 追加: 現在の日付を含めた連続日数を計算する関数
+  function getCurrentConsecutiveDays(dates: string[]): number {
+    const dateSet = new Set(dates);
+    let currentStreak = 0;
+    let date = new Date();
+    // 日付フォーマットは "YYYY-MM-DD" で比較
+    while (dateSet.has(date.toISOString().split('T')[0])) {
+      currentStreak++;
+      date.setDate(date.getDate() - 1);
+    }
+    return currentStreak;
+  }
+
   type Habit = {
     id: string;
     name: string;
@@ -229,18 +242,27 @@ export default function Index() {
       setHabits(
         habits.map((h) => {
           if (h.id === habitId) {
-            if (!isCompleted && updatedCompletedDates.length > 0) {
+            const today = new Date().toISOString().split('T')[0];
+            if (
+              date === today &&
+              !isCompleted &&
+              updatedCompletedDates.length > 0
+            ) {
               playSound();
+              const currentStreak = getCurrentConsecutiveDays(
+                updatedCompletedDates,
+              );
               setAchievementData({
                 isOpen: true,
-                streak: updatedCompletedDates.length,
+                streak: currentStreak, // 現在の日付を含めた連続日数を表示
                 habitName: h.name,
               });
             }
             return {
               ...h,
+              // DBには過去最高の連続日数を保存（※必要に応じてフィールド名を変更してください）
+              streak: getMaxConsecutiveDays(updatedCompletedDates),
               completedDates: updatedCompletedDates,
-              streak,
               totalDays: updatedCompletedDates.length,
             };
           }

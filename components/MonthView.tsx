@@ -102,7 +102,7 @@ export function MonthView({ habits, currentDate }: MonthViewProps) {
 
       {/* Calendar grid */}
       {weeks.map((week, wi) => (
-        <Box key={wi} className="flex flex-row mb-1">
+        <Box key={wi} className="flex flex-row mb-2">
           {week.map((day, di) => {
             const dateStr = formatDate(day);
             const isCompleted = allCompletedDates.includes(dateStr);

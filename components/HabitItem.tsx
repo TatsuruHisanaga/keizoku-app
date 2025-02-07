@@ -362,11 +362,6 @@ export function HabitItem({
                   <Text className="text-sm text-gray-500">
                     累計{habit.totalDays}日達成 / 最高連続{habit.streak}日
                   </Text>
-                  {habit.goal != null && (
-                    <Text className="text-sm text-gray-500">
-                      目標: {habit.goal}日
-                    </Text>
-                  )}
                 </Box>
               )}
               {isEditing || isEditingGoal ? null : (
