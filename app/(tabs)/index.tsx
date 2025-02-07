@@ -242,7 +242,12 @@ export default function Index() {
       setHabits(
         habits.map((h) => {
           if (h.id === habitId) {
-            if (!isCompleted && updatedCompletedDates.length > 0) {
+            const today = new Date().toISOString().split('T')[0];
+            if (
+              date === today &&
+              !isCompleted &&
+              updatedCompletedDates.length > 0
+            ) {
               playSound();
               const currentStreak = getCurrentConsecutiveDays(
                 updatedCompletedDates,
