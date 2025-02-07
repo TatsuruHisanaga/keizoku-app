@@ -176,14 +176,16 @@ export default function NotificationsScreen() {
         <VStack className="space-y-2">
           <HStack className="justify-between items-center">
             <Text
-              className={`${
+              numberOfLines={2}
+              ellipsizeMode="tail"
+              className={`flex-1 ${
                 item.is_read ? 'text-gray-700' : 'text-gray-900 font-bold'
               }`}
             >
               {item.message}
             </Text>
             {!item.is_read && (
-              <Badge className="bg-teal-100">
+              <Badge style={{ flexShrink: 0 }} className="bg-teal-100 ml-2">
                 <BadgeText className="text-teal-600 font-bold">NEW</BadgeText>
               </Badge>
             )}
