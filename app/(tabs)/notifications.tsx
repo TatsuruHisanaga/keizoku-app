@@ -120,7 +120,6 @@ export default function App() {
     <View
       style={{ flex: 1, alignItems: 'center', justifyContent: 'space-around' }}
     >
-      <Text>Your Expo push token: {expoPushToken}</Text>
       <View style={{ alignItems: 'center', justifyContent: 'center' }}>
         <Text>
           Title: {notification && notification.request.content.title}{' '}
