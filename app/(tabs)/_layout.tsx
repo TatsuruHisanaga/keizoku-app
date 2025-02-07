@@ -1,4 +1,4 @@
-import { Home, UserRoundCog, Flame } from 'lucide-react-native';
+import { Home, UserRoundCog, Flame, Bell } from 'lucide-react-native';
 import { Tabs } from 'expo-router';
 import { Icon } from '@/components/ui/icon';
 
@@ -21,6 +21,14 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <Icon as={Flame} size="lg" color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          title: '通知',
+          tabBarActiveTintColor: 'orange',
+          tabBarIcon: ({ color }) => <Icon as={Bell} size="lg" color={color} />,
         }}
       />
       <Tabs.Screen
