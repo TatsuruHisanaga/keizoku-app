@@ -68,7 +68,7 @@ export async function triggerNotification(
     data: { type, ...data },
   };
 
-  await fetch('https://exp.host/--/api/v2/push/send', {
+  const res = await fetch('https://exp.host/--/api/v2/push/send', {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -77,4 +77,40 @@ export async function triggerNotification(
     },
     body: JSON.stringify(message),
   });
+  const resData = await res.json();
+  console.log('Push notification response:', resData);
+}
+
+// -------------------------------------------
+// New function to update the push token in the database
+export async function updatePushToken() {
+  try {
+    // Get the push token from the device
+    const token = await Notifications.getExpoPushTokenAsync();
+    if (!token) return;
+
+    // Retrieve the currently authenticated user
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError || !user) {
+      console.error('User not found.');
+      return;
+    }
+
+    // Update the push token for the user in the profiles table
+    const { error } = await supabase
+      .from('profiles')
+      .update({ push_token: token })
+      .eq('id', user.id);
+
+    if (error) {
+      console.error('Error updating push token:', error);
+    } else {
+      console.log('Push token updated successfully.');
+    }
+  } catch (error) {
+    console.error('Unexpected error updating push token:', error);
+  }
 }
