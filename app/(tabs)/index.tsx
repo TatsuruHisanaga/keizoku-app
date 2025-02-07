@@ -13,6 +13,7 @@ import { Text } from '@/components/ui/text';
 import HabitFab from '@/components/HabitFab';
 import { ScrollView } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { updatePushToken } from '@/utils/notifications';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
@@ -20,10 +21,16 @@ export default function Index() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      if (session?.user) {
+        updatePushToken();
+      }
     });
 
     supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session?.user) {
+        updatePushToken();
+      }
     });
   }, []);
 

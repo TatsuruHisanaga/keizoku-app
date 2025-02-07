@@ -14,6 +14,7 @@ import { RefreshControl, ScrollView, TouchableOpacity } from 'react-native';
 import { Icon } from '@/components/ui/icon';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { triggerNotification } from '@/utils/notifications';
 
 interface PublicHabit {
   id: string;
@@ -119,6 +120,41 @@ export default function Social() {
         console.error('Error inserting like:', error);
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         return;
+      }
+
+      // For testing purposes, trigger notification even if you like your own habit.
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('push_token, username')
+        .eq('id', habit.profiles.id)
+        .single();
+
+      if (profileError) {
+        console.error(
+          'Error fetching profile data for notification:',
+          profileError,
+        );
+      } else if (profileData?.push_token) {
+        try {
+          await triggerNotification(
+            habit.profiles.id,
+            profileData.push_token,
+            'like',
+            {
+              senderId: userId,
+              senderName:
+                user.user_metadata?.username || user.email || 'Unknown',
+              habitName: habit.name,
+              habitId: habit.id,
+            },
+          );
+        } catch (notifError) {
+          console.error('Error triggering like notification:', notifError);
+        }
+      } else {
+        console.warn(
+          'No expo push token found for habit owner. Notification not sent.',
+        );
       }
     } else {
       const { error } = await supabase

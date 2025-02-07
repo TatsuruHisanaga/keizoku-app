@@ -20,7 +20,7 @@ import { useRouter } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
 import { HStack } from '@/components/ui/hstack';
 
-export default function Index() {
+export default function Settings() {
   const [session, setSession] = useState<Session | null>(null);
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
