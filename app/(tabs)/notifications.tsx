@@ -16,8 +16,8 @@ async function sendPushNotification(expoPushToken: string) {
   const message = {
     to: expoPushToken,
     sound: 'default',
-    title: 'Original Title',
-    body: 'And here is the body!',
+    title: '通知',
+    body: '通知の中身だよ！',
     data: { someData: 'goes here' },
   };
 
