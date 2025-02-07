@@ -1,7 +1,31 @@
 // utils/notifications.ts
 import * as Notifications from 'expo-notifications';
+import { supabase } from '@/lib/supabase';
+
+export async function saveNotificationToDb(
+  recipientId: string,
+  senderId: string | null,
+  type: 'follow' | 'like' | 'reminder',
+  message: string,
+  payload: Record<string, any> = {},
+) {
+  const { error } = await supabase.from('notifications').insert({
+    recipient_id: recipientId,
+    sender_id: senderId,
+    type,
+    message,
+    payload,
+    is_read: false,
+  });
+
+  if (error) {
+    console.error('Error saving notification:', error);
+    throw error;
+  }
+}
 
 export async function triggerNotification(
+  recipientId: string,
   expoPushToken: string,
   type: 'follow' | 'like' | 'reminder',
   data: Record<string, any>,
@@ -26,6 +50,16 @@ export async function triggerNotification(
       break;
   }
 
+  // Save to Supabase
+  await saveNotificationToDb(
+    recipientId,
+    data.senderId || null,
+    type,
+    body,
+    data,
+  );
+
+  // Send push notification
   const message = {
     to: expoPushToken,
     sound: 'default',
