@@ -155,18 +155,31 @@ export default function NotificationsScreen() {
   const renderItem = ({ item }: { item: (typeof notifications)[0] }) => (
     <Pressable onPress={() => markAsRead(item.id)}>
       <Box
-        className={`p-4 border-b ${item.is_read ? 'bg-white' : 'bg-blue-50'}`}
+        className={`p-4 rounded-lg border mb-3 ${
+          item.is_read
+            ? 'bg-white border-gray-100'
+            : 'bg-teal-50 border-teal-100'
+        }`}
+        style={{
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.03,
+          shadowRadius: 2,
+          elevation: 1,
+        }}
       >
         <VStack className="space-y-2">
           <HStack className="justify-between items-center">
             <Text
-              className={`${item.is_read ? 'font-normal' : 'font-bold'} text-gray-900`}
+              className={`${
+                item.is_read ? 'text-gray-700' : 'text-gray-900 font-bold'
+              }`}
             >
               {item.message}
             </Text>
             {!item.is_read && (
-              <Badge>
-                <BadgeText>New</BadgeText>
+              <Badge className="bg-teal-100">
+                <BadgeText className="text-teal-600 font-bold">NEW</BadgeText>
               </Badge>
             )}
           </HStack>
@@ -180,24 +193,57 @@ export default function NotificationsScreen() {
 
   return (
     <Box className="flex-1 bg-white">
-      <VStack className="flex-1 p-4 space-y-4">
-        <FlatList
-          data={notifications}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={{ flexGrow: 1 }}
-        />
-        <Button
-          className="bg-blue-500"
-          onPress={async () => {
-            await scheduleReminder(new Date(Date.now() + 1000));
-          }}
-        >
-          <ButtonText className="text-white">Send Test Reminder</ButtonText>
-        </Button>
-        <Button className="bg-red-500  mt-4" onPress={clearNotifications}>
-          <ButtonText className="text-white">通知を全てクリア</ButtonText>
-        </Button>
+      <VStack className="flex-1">
+        {notifications.length > 0 ? (
+          <>
+            <FlatList
+              data={notifications}
+              keyExtractor={(item) => item.id}
+              renderItem={renderItem}
+              contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+              showsVerticalScrollIndicator={false}
+            />
+            <Box className="absolute bottom-4 left-4 right-4 space-y-2">
+              <Button
+                className="h-12"
+                onPress={async () => {
+                  await scheduleReminder(new Date(Date.now() + 1000));
+                }}
+              >
+                <ButtonText className="text-white font-bold">
+                  テスト通知を送信
+                </ButtonText>
+              </Button>
+              <Button
+                className="bg-red-500 h-12 mt-2"
+                onPress={clearNotifications}
+              >
+                <ButtonText className="text-white font-bold">
+                  通知を全てクリア
+                </ButtonText>
+              </Button>
+            </Box>
+          </>
+        ) : (
+          <VStack space="md" className="items-center justify-center flex-1 p-4">
+            <Text size="lg" className="text-center text-gray-600 font-bold">
+              通知はありません
+            </Text>
+            <Text size="md" className="text-center text-gray-500 mb-4">
+              新しい通知が届くとここに表示されます
+            </Text>
+            <Button
+              className="bg-blue-500 h-12 w-full"
+              onPress={async () => {
+                await scheduleReminder(new Date(Date.now() + 1000));
+              }}
+            >
+              <ButtonText className="text-white font-bold">
+                テスト通知を送信
+              </ButtonText>
+            </Button>
+          </VStack>
+        )}
       </VStack>
     </Box>
   );
