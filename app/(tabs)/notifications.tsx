@@ -1,9 +1,19 @@
+// app/(tabs)/notifications.tsx
 import { useState, useEffect, useRef } from 'react';
-import { Text, View, Button, Platform } from 'react-native';
+import { Platform, FlatList } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
-
+import { scheduleReminder } from '@/utils/reminder';
+import { supabase } from '@/lib/supabase';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { VStack } from '@/components/ui/vstack';
+import { HStack } from '@/components/ui/hstack';
+import { Pressable } from 'react-native';
+import { Button, ButtonText } from '@/components/ui/button';
+import { Badge, BadgeText } from '@/components/ui/badge';
+// 既存の通知ハンドラ設定はそのまま再利用
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -12,34 +22,167 @@ Notifications.setNotificationHandler({
   }),
 });
 
-async function sendPushNotification(expoPushToken: string) {
-  const message = {
-    to: expoPushToken,
-    sound: 'default',
-    title: '通知',
-    body: '通知の中身だよ！',
-    data: { someData: 'goes here' },
+export default function NotificationsScreen() {
+  const [expoPushToken, setExpoPushToken] = useState('');
+  const [notifications, setNotifications] = useState<
+    {
+      id: string;
+      type: string;
+      message: string;
+      created_at: string;
+      is_read: boolean;
+      sender_id: string | null;
+      recipient_id: string;
+    }[]
+  >([]);
+  const notificationListener = useRef<Notifications.EventSubscription>();
+  const responseListener = useRef<Notifications.EventSubscription>();
+
+  useEffect(() => {
+    registerForPushNotificationsAsync()
+      .then((token) => setExpoPushToken(token ?? ''))
+      .catch((error: any) => console.error(error));
+
+    notificationListener.current =
+      Notifications.addNotificationReceivedListener(async (notification) => {
+        const newNotification = {
+          id: notification.request.identifier,
+          type: notification.request.content.data?.type as string,
+          message: notification.request.content.body ?? '',
+          created_at: new Date().toISOString(),
+          is_read: false,
+          sender_id: notification.request.content.data?.senderId as
+            | string
+            | null,
+          recipient_id: notification.request.content.data
+            ?.recipientId as string,
+        };
+
+        // Save to Supabase
+        const { error } = await supabase
+          .from('notifications')
+          .insert(newNotification);
+
+        if (error) {
+          console.error('Error saving notification to Supabase:', error);
+          return;
+        }
+
+        // Update local state
+        setNotifications((prev) => [newNotification, ...prev]);
+      });
+
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        console.log(response);
+        // タップした際に、対象の通知を既読にする処理などを入れることも可能
+      });
+
+    fetchNotifications();
+
+    return () => {
+      if (notificationListener.current) {
+        Notifications.removeNotificationSubscription(
+          notificationListener.current,
+        );
+      }
+      if (responseListener.current) {
+        Notifications.removeNotificationSubscription(responseListener.current);
+      }
+    };
+  }, []);
+
+  async function fetchNotifications() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('recipient_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching notifications:', error);
+      return;
+    }
+
+    setNotifications(data);
+  }
+
+  const markAsRead = async (id: string) => {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error marking notification as read:', error);
+      return;
+    }
+
+    setNotifications((prev) =>
+      prev.map((notification) =>
+        notification.id === id
+          ? { ...notification, is_read: true }
+          : notification,
+      ),
+    );
   };
 
-  await fetch('https://exp.host/--/api/v2/push/send', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Accept-encoding': 'gzip, deflate',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(message),
-  });
-}
+  const renderItem = ({ item }: { item: (typeof notifications)[0] }) => (
+    <Pressable onPress={() => markAsRead(item.id)}>
+      <Box
+        className={`p-4 border-b ${item.is_read ? 'bg-white' : 'bg-blue-50'}`}
+      >
+        <VStack className="space-y-2">
+          <HStack className="justify-between items-center">
+            <Text
+              className={`${item.is_read ? 'font-normal' : 'font-bold'} text-gray-900`}
+            >
+              {item.message}
+            </Text>
+            {!item.is_read && (
+              <Badge>
+                <BadgeText>New</BadgeText>
+              </Badge>
+            )}
+          </HStack>
+          <Text className="text-xs text-gray-500">
+            {new Date(item.created_at).toLocaleString('ja-JP')}
+          </Text>
+        </VStack>
+      </Box>
+    </Pressable>
+  );
 
-function handleRegistrationError(errorMessage: string) {
-  alert(errorMessage);
-  throw new Error(errorMessage);
+  return (
+    <Box className="flex-1 bg-white">
+      <VStack className="flex-1 p-4 space-y-4">
+        <FlatList
+          data={notifications}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={{ flexGrow: 1 }}
+        />
+        <Button
+          className="bg-blue-500"
+          onPress={async () => {
+            await scheduleReminder(new Date(Date.now() + 1000));
+          }}
+        >
+          <ButtonText className="text-white">Send Test Reminder</ButtonText>
+        </Button>
+      </VStack>
+    </Box>
+  );
 }
 
 async function registerForPushNotificationsAsync() {
   if (Platform.OS === 'android') {
-    Notifications.setNotificationChannelAsync('default', {
+    await Notifications.setNotificationChannelAsync('default', {
       name: 'default',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
@@ -56,86 +199,28 @@ async function registerForPushNotificationsAsync() {
       finalStatus = status;
     }
     if (finalStatus !== 'granted') {
-      handleRegistrationError(
-        'Permission not granted to get push token for push notification!',
-      );
-      return;
+      alert('Permission not granted to get push token for push notification!');
+      throw new Error('Push notification permission not granted');
     }
+
     const projectId =
       Constants?.expoConfig?.extra?.eas?.projectId ??
       Constants?.easConfig?.projectId;
     if (!projectId) {
-      handleRegistrationError('Project ID not found');
+      alert('Project ID not found');
+      throw new Error('Project ID not found');
     }
     try {
-      const pushTokenString = (
-        await Notifications.getExpoPushTokenAsync({
-          projectId,
-        })
-      ).data;
-      console.log(pushTokenString);
-      return pushTokenString;
+      const pushTokenData = await Notifications.getExpoPushTokenAsync({
+        projectId,
+      });
+      return pushTokenData.data;
     } catch (e: unknown) {
-      handleRegistrationError(`${e}`);
+      alert(`Push token error: ${e}`);
+      throw new Error(String(e));
     }
   } else {
-    handleRegistrationError('Must use physical device for push notifications');
+    alert('Must use physical device for push notifications');
+    throw new Error('Must use physical device for push notifications');
   }
-}
-
-export default function App() {
-  const [expoPushToken, setExpoPushToken] = useState('');
-  const [notification, setNotification] = useState<
-    Notifications.Notification | undefined
-  >(undefined);
-  const notificationListener = useRef<Notifications.EventSubscription>();
-  const responseListener = useRef<Notifications.EventSubscription>();
-
-  useEffect(() => {
-    registerForPushNotificationsAsync()
-      .then((token) => setExpoPushToken(token ?? ''))
-      .catch((error: any) => setExpoPushToken(`${error}`));
-
-    notificationListener.current =
-      Notifications.addNotificationReceivedListener((notification) => {
-        setNotification(notification);
-      });
-
-    responseListener.current =
-      Notifications.addNotificationResponseReceivedListener((response) => {
-        console.log(response);
-      });
-
-    return () => {
-      notificationListener.current &&
-        Notifications.removeNotificationSubscription(
-          notificationListener.current,
-        );
-      responseListener.current &&
-        Notifications.removeNotificationSubscription(responseListener.current);
-    };
-  }, []);
-
-  return (
-    <View
-      style={{ flex: 1, alignItems: 'center', justifyContent: 'space-around' }}
-    >
-      <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <Text>
-          Title: {notification && notification.request.content.title}{' '}
-        </Text>
-        <Text>Body: {notification && notification.request.content.body}</Text>
-        <Text>
-          Data:{' '}
-          {notification && JSON.stringify(notification.request.content.data)}
-        </Text>
-      </View>
-      <Button
-        title="Press to Send Notification"
-        onPress={async () => {
-          await sendPushNotification(expoPushToken);
-        }}
-      />
-    </View>
-  );
 }
