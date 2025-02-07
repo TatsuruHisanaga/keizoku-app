@@ -132,6 +132,26 @@ export default function NotificationsScreen() {
     );
   };
 
+  // 追加: 全通知をクリアする関数
+  const clearNotifications = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('recipient_id', user.id);
+
+    if (error) {
+      console.error('Error clearing notifications:', error);
+      return;
+    }
+
+    setNotifications([]);
+  };
+
   const renderItem = ({ item }: { item: (typeof notifications)[0] }) => (
     <Pressable onPress={() => markAsRead(item.id)}>
       <Box
@@ -174,6 +194,9 @@ export default function NotificationsScreen() {
           }}
         >
           <ButtonText className="text-white">Send Test Reminder</ButtonText>
+        </Button>
+        <Button className="bg-red-500  mt-4" onPress={clearNotifications}>
+          <ButtonText className="text-white">通知を全てクリア</ButtonText>
         </Button>
       </VStack>
     </Box>
