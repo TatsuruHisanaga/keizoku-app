@@ -31,6 +31,8 @@ export default function Settings() {
   const [isEditing, setIsEditing] = useState(false);
   const [followersCount, setFollowersCount] = useState<number>(0);
   const [followingCount, setFollowingCount] = useState<number>(0);
+  const [userIdentifier, setUserIdentifier] = useState('');
+  const [originalUserIdentifier, setOriginalUserIdentifier] = useState('');
 
   const router = useRouter();
 
@@ -63,6 +65,8 @@ export default function Settings() {
             setOriginalUsername(data.username || '');
             setOriginalBio(data.bio || '');
             setAvatar(data.avatar_url || '');
+            setUserIdentifier(data.user_identifier || '');
+            setOriginalUserIdentifier(data.user_identifier || '');
           }
         });
     }
@@ -110,56 +114,41 @@ export default function Settings() {
 
   const handleSave = async () => {
     if (!session) return;
-    // usernameのバリデーションチェック
-    if (username.trim().length < 3) {
-      console.error('ユーザー名は3文字以上で入力してください。');
-      setUploading(false);
-      return;
-    }
-    if (username.length > 16) {
-      console.error('ユーザー名は16文字以内で入力してください。');
-      setUploading(false);
-      return;
-    }
-    // bioの文字数チェック
-    if (bio.length > 200) {
-      console.error('自己紹介は200文字以内で入力してください。');
-      setUploading(false);
-      return;
-    }
-    setUploading(true);
-    let avatar_url = avatar;
 
-    if (avatar && avatar.startsWith('file://')) {
-      try {
-        const response = await fetch(avatar);
-        const blob = await response.blob();
-        const ext = avatar.split('.').pop();
-        const fileName = `${session.user.id}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from('avatars')
-          .upload(fileName, blob, { upsert: true });
-        if (uploadError) {
-          console.error('Avatar upload error:', uploadError);
-        } else {
-          const { data } = supabase.storage
-            .from('avatars')
-            .getPublicUrl(fileName);
-          avatar_url = data.publicUrl;
+    if (userIdentifier) {
+      if (!/^[a-zA-Z0-9_]{3,20}$/.test(userIdentifier)) {
+        Alert.alert(
+          'エラー',
+          'ユーザーIDは3~20文字の半角英数字とアンダースコアのみ使用できます',
+        );
+        return;
+      }
+
+      if (userIdentifier !== originalUserIdentifier) {
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_identifier', userIdentifier)
+          .single();
+
+        if (existingUser) {
+          Alert.alert('エラー', 'このユーザーIDは既に使用されています');
+          return;
         }
-      } catch (error) {
-        console.error('Upload failed', error);
       }
     }
 
-    // プロフィールテーブルの更新
-    const { error, data } = await supabase
+    setUploading(true);
+
+    // 既存のプロフィール更新処理に user_identifier を追加
+    const { error } = await supabase
       .from('profiles')
       .upsert({
         id: session.user.id,
         username,
         bio,
-        avatar_url,
+        avatar_url: avatar,
+        user_identifier: userIdentifier,
         updated_at: new Date().toISOString(),
       })
       .select()
@@ -168,9 +157,10 @@ export default function Settings() {
     if (error) {
       console.error('Profile update error:', error);
     } else {
-      setUsername(data.username || '');
-      setBio(data.bio || '');
-      setAvatar(data.avatar_url || '');
+      setUsername(session.user.user_metadata.username || '');
+      setBio(session.user.user_metadata.bio || '');
+      setAvatar(session.user.user_metadata.avatar_url || '');
+      setUserIdentifier(session.user.user_metadata.user_identifier || '');
     }
 
     setUploading(false);
@@ -290,6 +280,26 @@ export default function Settings() {
                 ) : (
                   <Text className="text-base">
                     {bio || '自己紹介が未設定です'}
+                  </Text>
+                )}
+              </Box>
+
+              <Text className="text-sm text-gray-600 mb-1 mt-4">
+                ユーザーID
+              </Text>
+              <Box className="mb-2 min-h-[40px]">
+                {isEditing ? (
+                  <Input className="w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <InputField
+                      placeholder="ユーザーIDを入力（半角英数字とアンダースコア）"
+                      value={userIdentifier}
+                      onChangeText={setUserIdentifier}
+                      maxLength={20}
+                    />
+                  </Input>
+                ) : (
+                  <Text className="text-base">
+                    {userIdentifier ? `@${userIdentifier}` : '未設定'}
                   </Text>
                 )}
               </Box>
