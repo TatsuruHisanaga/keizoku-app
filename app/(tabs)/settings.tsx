@@ -116,10 +116,13 @@ export default function Settings() {
     if (!session) return;
 
     if (userIdentifier) {
-      if (!/^[a-zA-Z0-9_]{3,20}$/.test(userIdentifier)) {
+      const trimmedId = userIdentifier.trim().toLowerCase();
+
+      const userIdPattern = /^[a-z0-9_]{3,20}$/;
+      if (!userIdPattern.test(trimmedId)) {
         Alert.alert(
           'エラー',
-          'ユーザーIDは3~20文字の半角英数字とアンダースコアのみ使用できます',
+          'ユーザーIDは3~20文字の半角英小文字、数字、アンダースコアのみ使用できます',
         );
         return;
       }
@@ -128,7 +131,7 @@ export default function Settings() {
         const { data: existingUser } = await supabase
           .from('profiles')
           .select('id')
-          .eq('user_identifier', userIdentifier)
+          .eq('user_identifier', trimmedId)
           .single();
 
         if (existingUser) {
@@ -148,7 +151,7 @@ export default function Settings() {
         username,
         bio,
         avatar_url: avatar,
-        user_identifier: userIdentifier,
+        user_identifier: userIdentifier.trim().toLowerCase(),
         updated_at: new Date().toISOString(),
       })
       .select()
@@ -291,7 +294,7 @@ export default function Settings() {
                 {isEditing ? (
                   <Input className="w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <InputField
-                      placeholder="ユーザーIDを入力（半角英数字とアンダースコア）"
+                      placeholder="ユーザーIDを入力（半角英数小文字、数字、アンダースコア）"
                       value={userIdentifier}
                       onChangeText={setUserIdentifier}
                       maxLength={20}
@@ -299,7 +302,7 @@ export default function Settings() {
                   </Input>
                 ) : (
                   <Text className="text-base">
-                    {userIdentifier ? `@${userIdentifier}` : '未設定'}
+                    {userIdentifier ? `${userIdentifier}` : '未設定'}
                   </Text>
                 )}
               </Box>
