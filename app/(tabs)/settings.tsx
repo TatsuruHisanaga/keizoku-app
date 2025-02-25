@@ -112,7 +112,8 @@ export default function Settings() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      quality: 1,
+      aspect: [1, 1], // 正方形のクロップを強制
+      quality: 0.8,
     });
     if (!result.canceled) {
       setAvatar(result.assets[0].uri);
@@ -150,8 +151,7 @@ export default function Settings() {
 
     setUploading(true);
 
-    // 既存のプロフィール更新処理に user_identifier を追加
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('profiles')
       .upsert({
         id: session.user.id,
@@ -209,133 +209,165 @@ export default function Settings() {
           keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
         >
           <ScrollView showsVerticalScrollIndicator={false}>
-            <VStack space="lg" className="p-6">
-              <Text className="text-xl font-semibold">プロフィール</Text>
-
-              <VStack space="md" className="items-center w-full">
-                <HStack space="lg" className="items-center w-full">
-                  <Pressable
-                    onPress={isEditing ? pickImage : undefined}
-                    className="relative"
+            <VStack space="lg" className="p-4">
+              <HStack className="justify-between items-center mb-4">
+                <Text className="text-xl font-semibold">プロフィール</Text>
+                {!isEditing && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onPress={handleEditStart}
+                    className="border-gray-300"
                   >
-                    <Avatar size="lg" style={{ opacity: isEditing ? 0.7 : 1 }}>
-                      <AvatarFallbackText>
-                        {username?.[0]?.toUpperCase() || '?'}
-                      </AvatarFallbackText>
-                      {avatar && <AvatarImage source={{ uri: avatar }} />}
-                    </Avatar>
-                    {isEditing && (
-                      <Box className="absolute right-0 bottom-0 bg-gray-100 rounded-full p-1">
-                        <Icon
-                          as={SquarePen}
-                          size="sm"
-                          className="text-gray-600"
-                        />
-                      </Box>
-                    )}
-                  </Pressable>
+                    <ButtonText className="text-gray-600">編集</ButtonText>
+                    <ButtonIcon
+                      as={SquarePen}
+                      size="sm"
+                      className="text-gray-600 ml-1"
+                    />
+                  </Button>
+                )}
+              </HStack>
 
-                  <HStack space="md">
-                    <TouchableOpacity
-                      onPress={() =>
-                        router.push(`/followers/${session.user.id}`)
-                      }
-                    >
-                      <Box className="items-center">
-                        <Text className="font-bold">{followersCount}</Text>
-                        <Text className="text-gray-600">フォロワー</Text>
-                      </Box>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() =>
-                        router.push(`/following/${session.user.id}`)
-                      }
-                    >
-                      <Box className="items-center">
-                        <Text className="font-bold">{followingCount}</Text>
-                        <Text className="text-gray-600">フォロー中</Text>
-                      </Box>
-                    </TouchableOpacity>
-                  </HStack>
+              <HStack className="items-center w-full mb-2 justify-between">
+                <Pressable
+                  onPress={isEditing ? pickImage : undefined}
+                  className="relative"
+                >
+                  <Avatar
+                    size="lg"
+                    style={{
+                      opacity: isEditing ? 0.8 : 1,
+                      borderWidth: isEditing ? 2 : 0,
+                      borderColor: isEditing ? '#3b82f6' : 'transparent',
+                    }}
+                  >
+                    <AvatarFallbackText>
+                      {username?.[0]?.toUpperCase() || '?'}
+                    </AvatarFallbackText>
+                    {avatar && <AvatarImage source={{ uri: avatar }} />}
+                  </Avatar>
+                  {isEditing && (
+                    <Box className="absolute right-0 bottom-0 bg-blue-500 rounded-full p-1.5">
+                      <Icon as={SquarePen} size="xs" className="text-white" />
+                    </Box>
+                  )}
+                </Pressable>
+
+                <VStack className="flex-1 mx-3">
+                  <Text className="text-lg font-bold">
+                    {username || '未設定'}
+                  </Text>
+                  <Text className="text-sm text-gray-500">
+                    {userIdentifier ? `@${userIdentifier}` : ''}
+                  </Text>
+                </VStack>
+
+                <HStack className="items-center space-x-4">
+                  <TouchableOpacity
+                    onPress={() => router.push(`/followers/${session.user.id}`)}
+                    className="items-center"
+                  >
+                    <Text className="font-bold">{followersCount}</Text>
+                    <Text className="text-gray-600 text-xs">フォロワー</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => router.push(`/following/${session.user.id}`)}
+                    className="items-center"
+                  >
+                    <Text className="font-bold">{followingCount}</Text>
+                    <Text className="text-gray-600 text-xs">フォロー中</Text>
+                  </TouchableOpacity>
                 </HStack>
+              </HStack>
 
-                <VStack space="sm" className="w-full mt-4">
-                  <Text className="text-sm text-gray-600 mb-1">
-                    登録中のメールアドレス
-                  </Text>
-                  <Text className="text-base">{session.user.email}</Text>
+              {!isEditing && bio && (
+                <Text className="text-base leading-5 mb-2">{bio}</Text>
+              )}
 
-                  <Text className="text-sm text-gray-600 mb-1 mt-4">
-                    ユーザー名
-                  </Text>
-                  <Box className="mb-2 min-h-[40px]">
-                    {isEditing ? (
-                      <Input className="w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <InputField
-                          placeholder="ユーザー名を入力"
-                          value={username}
-                          onChangeText={setUsername}
-                          maxLength={16}
-                        />
-                      </Input>
-                    ) : (
-                      <Text className="text-base">{username || '未設定'}</Text>
-                    )}
-                  </Box>
+              {isEditing ? (
+                <VStack space="md" className="w-full">
+                  <VStack space="xs">
+                    <Text className="text-sm font-medium text-gray-600">
+                      ユーザー名
+                    </Text>
+                    <Input
+                      className="w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      size="md"
+                    >
+                      <InputField
+                        placeholder="ユーザー名を入力"
+                        value={username}
+                        onChangeText={setUsername}
+                        maxLength={16}
+                      />
+                    </Input>
+                  </VStack>
 
-                  <Text className="text-sm text-gray-600 mb-1 mt-4">
-                    自己紹介
-                  </Text>
-                  <Box className="mb-2 min-h-[100px]">
-                    {isEditing ? (
-                      <>
-                        <Input className="w-full border border-gray-300 rounded-lg mb-1 py-2 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-blue-500">
-                          <InputField
-                            placeholder="自己紹介を入力"
-                            value={bio}
-                            onChangeText={setBio}
-                            multiline
-                            textAlignVertical="top"
-                            maxLength={200}
-                          />
-                        </Input>
-                        <Text className="text-sm text-gray-500 text-right">
-                          {bio.length}/200文字
-                        </Text>
-                      </>
-                    ) : (
-                      <Text className="text-base">
-                        {bio || '自己紹介が未設定です'}
-                      </Text>
-                    )}
-                  </Box>
+                  <VStack space="xs">
+                    <Text className="text-sm font-medium text-gray-600">
+                      ユーザーID
+                    </Text>
+                    <Input
+                      className="w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      size="md"
+                    >
+                      <InputField
+                        placeholder="ユーザーID（英小文字、数字、_のみ）"
+                        value={userIdentifier}
+                        onChangeText={setUserIdentifier}
+                        maxLength={20}
+                      />
+                    </Input>
+                    <Text className="text-xs text-gray-500">
+                      3〜20文字の半角英小文字、数字、アンダースコア(_)が使用可能
+                    </Text>
+                  </VStack>
 
-                  <Text className="text-sm text-gray-600 mb-1 mt-4">
-                    ユーザーID
-                  </Text>
-                  <Box className="mb-2 min-h-[40px]">
-                    {isEditing ? (
-                      <Input className="w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <InputField
-                          placeholder="ユーザーIDを入力（半角英数小文字、数字、アンダースコア）"
-                          value={userIdentifier}
-                          onChangeText={setUserIdentifier}
-                          maxLength={20}
-                        />
-                      </Input>
-                    ) : (
-                      <Text className="text-base">
-                        {userIdentifier ? `${userIdentifier}` : '未設定'}
-                      </Text>
-                    )}
+                  <VStack space="xs">
+                    <Text className="text-sm font-medium text-gray-600">
+                      自己紹介
+                    </Text>
+                    <Input
+                      className="w-full border border-gray-200 rounded-lg mb-1 py-2 min-h-[80px] focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      size="md"
+                    >
+                      <InputField
+                        placeholder="自己紹介を入力（最大200文字）"
+                        value={bio}
+                        onChangeText={setBio}
+                        multiline
+                        textAlignVertical="top"
+                        maxLength={200}
+                        numberOfLines={3}
+                      />
+                    </Input>
+                    <Text className="text-xs text-gray-500 text-right">
+                      {bio.length}/200文字
+                    </Text>
+                  </VStack>
+                </VStack>
+              ) : (
+                <VStack space="md" className="w-full">
+                  <Box className="bg-white border border-gray-100 rounded-xl p-4">
+                    <Text className="text-sm text-gray-500 mb-1">
+                      メールアドレス
+                    </Text>
+                    <Text className="text-base">{session.user.email}</Text>
                   </Box>
                 </VStack>
-              </VStack>
+              )}
 
-              <VStack space="sm" className="w-full mt-6">
+              <VStack space="sm" className="w-full mt-4">
                 {isEditing ? (
                   uploading ? (
-                    <ActivityIndicator size="large" color="#0000ff" />
+                    <Box className="items-center py-4">
+                      <ActivityIndicator size="small" color="#3b82f6" />
+                      <Text className="text-gray-600 mt-2 text-sm">
+                        保存中...
+                      </Text>
+                    </Box>
                   ) : (
                     <>
                       <Button
@@ -345,19 +377,19 @@ export default function Settings() {
                           setIsEditing(false);
                         }}
                         className="w-full"
-                        style={{ backgroundColor: '#333333' }}
+                        style={{ backgroundColor: '#3b82f6' }}
                       >
-                        <ButtonText className="text-white text-base">
-                          変更を保存
+                        <ButtonText className="text-white font-medium">
+                          保存する
                         </ButtonText>
                       </Button>
 
                       <Button
                         variant="outline"
                         onPress={handleCancel}
-                        className="w-full border-gray-300"
+                        className="w-full border-gray-300 mt-2"
                       >
-                        <ButtonText className="text-gray-600 text-base">
+                        <ButtonText className="text-gray-600">
                           キャンセル
                         </ButtonText>
                       </Button>
@@ -366,26 +398,13 @@ export default function Settings() {
                 ) : (
                   <Button
                     variant="outline"
-                    onPress={handleEditStart}
-                    className="w-full border-gray-300"
+                    onPress={handleLogout}
+                    className="w-full border-red-500 mt-4"
                   >
-                    <ButtonText className="text-gray-600 text-base">
-                      編集
-                    </ButtonText>
-                    <ButtonIcon as={SquarePen} className="text-gray-600" />
+                    <ButtonIcon as={LogOut} className="text-red-500 mr-1" />
+                    <ButtonText className="text-red-500">ログアウト</ButtonText>
                   </Button>
                 )}
-
-                <Button
-                  variant="outline"
-                  onPress={handleLogout}
-                  className="w-full border-red-500"
-                >
-                  <ButtonText className="text-red-500 text-base">
-                    ログアウト
-                  </ButtonText>
-                  <ButtonIcon as={LogOut} className="text-red-500" />
-                </Button>
               </VStack>
             </VStack>
           </ScrollView>
