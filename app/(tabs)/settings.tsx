@@ -254,7 +254,7 @@ export default function Settings() {
                   )}
                 </Pressable>
 
-                <VStack className="flex-1 mx-3">
+                <VStack className="flex-1 mx-3 ml-4">
                   <Text className="text-lg font-bold">
                     {username || '未設定'}
                   </Text>
@@ -263,21 +263,22 @@ export default function Settings() {
                   </Text>
                 </VStack>
 
-                <HStack className="items-center space-x-4">
+                <HStack space="md" className="mr-8">
                   <TouchableOpacity
                     onPress={() => router.push(`/followers/${session.user.id}`)}
-                    className="items-center"
                   >
-                    <Text className="font-bold">{followersCount}</Text>
-                    <Text className="text-gray-600 text-xs">フォロワー</Text>
+                    <Box className="items-center">
+                      <Text className="font-bold">{followersCount}</Text>
+                      <Text className="text-gray-600">フォロワー</Text>
+                    </Box>
                   </TouchableOpacity>
-
                   <TouchableOpacity
                     onPress={() => router.push(`/following/${session.user.id}`)}
-                    className="items-center"
                   >
-                    <Text className="font-bold">{followingCount}</Text>
-                    <Text className="text-gray-600 text-xs">フォロー中</Text>
+                    <Box className="items-center">
+                      <Text className="font-bold">{followingCount}</Text>
+                      <Text className="text-gray-600">フォロー中</Text>
+                    </Box>
                   </TouchableOpacity>
                 </HStack>
               </HStack>
