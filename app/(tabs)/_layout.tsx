@@ -1,8 +1,25 @@
 import { Home, UserRoundCog, Flame, Bell } from 'lucide-react-native';
 import { Tabs } from 'expo-router';
 import { Icon } from '@/components/ui/icon';
+import { useAuth } from '@/lib/AuthContext';
+import Auth from '@/components/Auth';
+import { View } from 'react-native';
 
 export default function TabLayout() {
+  const { session, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <View style={{ flex: 1 }}></View>;
+  }
+
+  if (!session) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Auth />
+      </View>
+    );
+  }
+
   return (
     <Tabs screenOptions={{ animation: 'shift' }}>
       <Tabs.Screen

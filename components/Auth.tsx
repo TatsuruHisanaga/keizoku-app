@@ -86,11 +86,11 @@ export default function Auth() {
       email,
       password,
     });
-    performOAuth;
+
     if (error) {
       Alert.alert(error.message);
-      setLoading(false);
     }
+    setLoading(false);
   }
 
   async function signUpWithEmail() {
@@ -102,7 +102,7 @@ export default function Auth() {
       email: email,
       password: password,
     });
-    sendMagicLink;
+
     if (error) Alert.alert(error.message);
     if (!session)
       Alert.alert('Please check your inbox for email verification!');
