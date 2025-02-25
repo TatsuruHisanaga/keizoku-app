@@ -151,7 +151,7 @@ export default function Settings() {
     setUploading(true);
 
     // 既存のプロフィール更新処理に user_identifier を追加
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .upsert({
         id: session.user.id,
@@ -167,10 +167,10 @@ export default function Settings() {
     if (error) {
       console.error('Profile update error:', error);
     } else {
-      setUsername(session.user.user_metadata.username || '');
-      setBio(session.user.user_metadata.bio || '');
-      setAvatar(session.user.user_metadata.avatar_url || '');
-      setUserIdentifier(session.user.user_metadata.user_identifier || '');
+      // 保存成功後に元の値を更新
+      setOriginalUsername(username);
+      setOriginalBio(bio);
+      setOriginalUserIdentifier(userIdentifier.trim().toLowerCase());
     }
 
     setUploading(false);
