@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { VStack } from '@/components/ui/vstack';
 import { Text } from '@/components/ui/text';
 import { Box } from '@/components/ui/box';
@@ -182,7 +182,7 @@ export default function Social() {
     );
   };
 
-  const fetchPublicHabits = async () => {
+  const fetchPublicHabits = useCallback(async () => {
     setRefreshing(true);
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -223,7 +223,7 @@ export default function Social() {
     } finally {
       setRefreshing(false);
     }
-  };
+  }, []);
 
   // ユーザーのいいね状態を取得する関数
   const fetchUserLikes = async () => {
@@ -275,7 +275,7 @@ export default function Social() {
 
   useEffect(() => {
     fetchPublicHabits();
-  }, []);
+  }, [fetchPublicHabits]);
 
   // アプリ全体のリフレッシュ処理
   const handleRefresh = async () => {
@@ -406,8 +406,13 @@ export default function Social() {
                         {formatTime(habit.achieved_at)}
                       </Text>
                       <TouchableOpacity
-                        onPress={() => toggleLike(habit.id)}
-                        className="flex-row items-center"
+                        onPress={(e) => {
+                          // イベントの伝播を停止
+                          e.stopPropagation();
+                          toggleLike(habit.id);
+                        }}
+                        className="flex-row items-center p-2 -m-2"
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       >
                         <Icon
                           as={Flame}
