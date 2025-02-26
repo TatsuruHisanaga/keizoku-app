@@ -115,7 +115,7 @@ export default function Settings() {
       allowsEditing: true,
       aspect: [1, 1], // 正方形のクロップを強制
       quality: 0.8,
-      base64: true, // Add this to get base64 data for upload
+      base64: true,
     });
     if (!result.canceled) {
       setAvatar(result.assets[0].uri);
@@ -149,6 +149,9 @@ export default function Settings() {
         .upload(fileName, decode(base64Data), {
           contentType: `image/${fileExt}`,
           upsert: true,
+          metadata: {
+            userId: session?.user.id,
+          },
         });
 
       if (error) {
@@ -165,6 +168,26 @@ export default function Settings() {
       console.error('Error uploading avatar:', error);
       Alert.alert('エラー', 'アバター画像のアップロードに失敗しました');
       return null;
+    }
+  };
+
+  // 古いアバター画像を削除する関数
+  const deleteOldAvatar = async (avatarUrl: string) => {
+    try {
+      // URLからファイル名を抽出
+      const fileName = avatarUrl.split('/').pop();
+      if (!fileName) return;
+
+      // ファイルを削除
+      const { error } = await supabase.storage
+        .from('avatars')
+        .remove([fileName]);
+
+      if (error) {
+        console.error('Error deleting old avatar:', error);
+      }
+    } catch (error) {
+      console.error('Error in deleteOldAvatar:', error);
     }
   };
 
@@ -201,11 +224,22 @@ export default function Settings() {
 
     // Upload avatar if it has changed (doesn't start with http/https)
     let avatarUrl = avatar;
+    const oldAvatarUrl = originalUsername ? avatar : null;
+
     if (avatar && !avatar.startsWith('http')) {
       const uploadedUrl = await uploadAvatar(avatar);
       if (uploadedUrl) {
         avatarUrl = uploadedUrl;
         console.log('Setting avatar URL to:', avatarUrl);
+
+        // 古いアバター画像があれば削除
+        if (
+          oldAvatarUrl &&
+          oldAvatarUrl.includes('avatars') &&
+          oldAvatarUrl.startsWith('http')
+        ) {
+          await deleteOldAvatar(oldAvatarUrl);
+        }
       }
     }
 
