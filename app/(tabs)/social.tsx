@@ -96,11 +96,7 @@ export default function Social() {
   const toggleLike = async (habitId: string): Promise<void> => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    const habit = publicHabits.find((h) => h.id === habitId);
-    if (!habit) return;
-
-    const newLiked = !likedHabits[habitId];
-
+    // まず認証済みユーザーを取得
     const {
       data: { user },
       error: userError,
@@ -110,6 +106,11 @@ export default function Social() {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
+
+    const habit = publicHabits.find((h) => h.id === habitId);
+    if (!habit) return;
+
+    const newLiked = !likedHabits[habitId];
     const userId = user.id;
 
     if (newLiked) {
@@ -169,6 +170,7 @@ export default function Social() {
       }
     }
 
+    // 正確にいいね数を更新
     const currentLikes = habit.likes ?? 0;
     const newLikeCount = newLiked
       ? currentLikes + 1
@@ -210,6 +212,9 @@ export default function Social() {
           likes: Array.isArray(habit.likes) ? habit.likes.length : 0,
         }));
         setPublicHabits(processedData);
+
+        // 現在のユーザーのいいね状態を取得
+        fetchUserLikes();
       } else {
         setPublicHabits([]);
       }
@@ -217,6 +222,34 @@ export default function Social() {
       console.error('Error fetching public habits:', error);
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  // ユーザーのいいね状態を取得する関数
+  const fetchUserLikes = async () => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return;
+
+      const { data, error } = await supabase
+        .from('likes')
+        .select('habit_id')
+        .eq('user_id', userData.user.id);
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const userLikes = data.reduce(
+          (acc: { [id: string]: boolean }, like) => {
+            acc[like.habit_id] = true;
+            return acc;
+          },
+          {},
+        );
+        setLikedHabits(userLikes);
+      }
+    } catch (error) {
+      console.error('Error fetching user likes:', error);
     }
   };
 
@@ -243,6 +276,18 @@ export default function Social() {
   useEffect(() => {
     fetchPublicHabits();
   }, []);
+
+  // アプリ全体のリフレッシュ処理
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([fetchPublicHabits(), fetchUserLikes()]);
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -313,10 +358,7 @@ export default function Social() {
       <ScrollView
         className="flex-1"
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={fetchPublicHabits}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
         <Box className="p-4">
