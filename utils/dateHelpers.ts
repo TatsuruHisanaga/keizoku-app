@@ -7,4 +7,4 @@ export const getGoalDateStr = (goal?: number): string => {
   const goalDate = new Date(now);
   goalDate.setDate(now.getDate() + goal);
   return formatDate(goalDate);
-}; 
+};

@@ -10,7 +10,6 @@ import {
 import { VStack } from '@/components/ui/vstack';
 import { makeRedirectUri } from 'expo-auth-session';
 import * as QueryParams from 'expo-auth-session/build/QueryParams';
-import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { supabase } from '../lib/supabase';
 import { EyeIcon, EyeOffIcon } from '@/components/ui/icon';
@@ -37,43 +36,11 @@ const createSessionFromUrl = async (url: string) => {
   return data.session;
 };
 
-const performOAuth = async () => {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'github',
-    options: {
-      redirectTo,
-      skipBrowserRedirect: true,
-    },
-  });
-  if (error) throw error;
-
-  const res = await WebBrowser.openAuthSessionAsync(
-    data?.url ?? '',
-    redirectTo,
-  );
-
-  if (res.type === 'success') {
-    const { url } = res;
-    await createSessionFromUrl(url);
-  }
-};
-
-const sendMagicLink = async () => {
-  const { error } = await supabase.auth.signInWithOtp({
-    email: 'valid.email@supabase.io',
-    options: {
-      emailRedirectTo: redirectTo,
-    },
-  });
-
-  if (error) throw error;
-  // Email sent.
-};
-
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
 
   // Handle linking into app from email app.
   const url = Linking.useURL();
@@ -86,11 +53,11 @@ export default function Auth() {
       email,
       password,
     });
-    performOAuth;
+
     if (error) {
       Alert.alert(error.message);
-      setLoading(false);
     }
+    setLoading(false);
   }
 
   async function signUpWithEmail() {
@@ -102,7 +69,7 @@ export default function Auth() {
       email: email,
       password: password,
     });
-    sendMagicLink;
+
     if (error) Alert.alert(error.message);
     if (!session)
       Alert.alert('Please check your inbox for email verification!');
@@ -118,7 +85,7 @@ export default function Auth() {
 
   return (
     <VStack className="w-full rounded-md p-4">
-      <Heading className="mb-2">ログイン</Heading>
+      <Heading className="mb-2">{isSignUp ? '新規登録' : 'ログイン'}</Heading>
       <FormControl className="mb-2">
         <FormControlLabel>
           <FormControlLabelText>メールアドレス</FormControlLabelText>
@@ -150,10 +117,10 @@ export default function Auth() {
       <Button
         className="mb-2"
         size="sm"
-        onPress={() => signInWithEmail()}
+        onPress={() => (isSignUp ? signUpWithEmail() : signInWithEmail())}
         disabled={loading}
       >
-        <ButtonText>ログイン</ButtonText>
+        <ButtonText>{isSignUp ? '新規登録' : 'ログイン'}</ButtonText>
       </Button>
       <Center>
         <Text>or</Text>
@@ -161,11 +128,11 @@ export default function Auth() {
       <Button
         className="mt-2"
         size="sm"
-        onPress={() => signUpWithEmail()}
+        onPress={() => setIsSignUp(!isSignUp)}
         variant="outline"
         disabled={loading}
       >
-        <ButtonText>新規登録</ButtonText>
+        <ButtonText>{isSignUp ? 'ログイン' : '新規登録'}</ButtonText>
       </Button>
     </VStack>
   );
