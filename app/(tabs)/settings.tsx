@@ -25,6 +25,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
 import { HStack } from '@/components/ui/hstack';
+import * as FileSystem from 'expo-file-system';
+import { decode } from 'base64-arraybuffer';
 
 export default function Settings() {
   const [session, setSession] = useState<Session | null>(null);
@@ -113,9 +115,56 @@ export default function Settings() {
       allowsEditing: true,
       aspect: [1, 1], // 正方形のクロップを強制
       quality: 0.8,
+      base64: true, // Add this to get base64 data for upload
     });
     if (!result.canceled) {
       setAvatar(result.assets[0].uri);
+    }
+  };
+
+  const uploadAvatar = async (uri: string) => {
+    try {
+      // Get file extension
+      const fileExt = uri.split('.').pop()?.toLowerCase() || 'jpeg';
+      const fileName = `${session?.user.id}-${Date.now()}.${fileExt}`;
+
+      // Convert to base64 if not already
+      let base64Data;
+      if (uri.startsWith('data:')) {
+        base64Data = uri.split(',')[1];
+      } else {
+        const fileInfo = await FileSystem.getInfoAsync(uri);
+        if (!fileInfo.exists) {
+          throw new Error('File does not exist');
+        }
+
+        base64Data = await FileSystem.readAsStringAsync(uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+      }
+
+      // Upload to Supabase
+      const { error } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, decode(base64Data), {
+          contentType: `image/${fileExt}`,
+          upsert: true,
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('avatars').getPublicUrl(fileName);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      Alert.alert('エラー', 'アバター画像のアップロードに失敗しました');
+      return null;
     }
   };
 
@@ -150,13 +199,23 @@ export default function Settings() {
 
     setUploading(true);
 
+    // Upload avatar if it has changed (doesn't start with http/https)
+    let avatarUrl = avatar;
+    if (avatar && !avatar.startsWith('http')) {
+      const uploadedUrl = await uploadAvatar(avatar);
+      if (uploadedUrl) {
+        avatarUrl = uploadedUrl;
+        console.log('Setting avatar URL to:', avatarUrl);
+      }
+    }
+
     const { error } = await supabase
       .from('profiles')
       .upsert({
         id: session.user.id,
         username,
         bio,
-        avatar_url: avatar,
+        avatar_url: avatarUrl,
         user_identifier: userIdentifier.trim().toLowerCase(),
         updated_at: new Date().toISOString(),
       })
@@ -165,11 +224,14 @@ export default function Settings() {
 
     if (error) {
       console.error('Profile update error:', error);
+      Alert.alert('エラー', 'プロフィールの更新に失敗しました');
     } else {
       // 保存成功後に元の値を更新
       setOriginalUsername(username);
       setOriginalBio(bio);
       setOriginalUserIdentifier(userIdentifier.trim().toLowerCase());
+      setAvatar(avatarUrl); // Update avatar with the storage URL
+      console.log('Profile updated with avatar:', avatarUrl);
     }
 
     setUploading(false);
@@ -243,7 +305,13 @@ export default function Settings() {
                   <AvatarFallbackText>
                     {username?.[0]?.toUpperCase() || '?'}
                   </AvatarFallbackText>
-                  {avatar && <AvatarImage source={{ uri: avatar }} />}
+                  {avatar && (
+                    <AvatarImage
+                      source={{ uri: avatar }}
+                      alt={username || 'ユーザー'}
+                      style={{ width: '100%', height: '100%' }}
+                    />
+                  )}
                 </Avatar>
                 {isEditing && (
                   <Box className="absolute right-0 bottom-0 bg-blue-500 rounded-full p-1.5">
