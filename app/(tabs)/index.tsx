@@ -201,6 +201,27 @@ export default function Index() {
 
       const streak = getMaxConsecutiveDays(updatedCompletedDates);
 
+      // 当日の日付を取得
+      const today = new Date().toISOString().split('T')[0];
+
+      // achieved_at の更新ロジック
+      // 1. 未達成→達成の時だけ更新を検討
+      // 2. 当日の日付の場合のみ
+      // 3. achieved_at が未設定の場合、または達成日が今日でない場合のみ更新
+      let newAchievedAt = habit.achieved_at;
+
+      if (!isCompleted && date === today) {
+        // すでに achieved_at が設定されているか確認
+        const achievedDate = habit.achieved_at
+          ? new Date(habit.achieved_at).toISOString().split('T')[0]
+          : null;
+
+        // achieved_at が未設定、または達成日が今日でない場合のみ更新
+        if (!achievedDate || achievedDate !== today) {
+          newAchievedAt = new Date().toISOString();
+        }
+      }
+
       // Update habit completion
       const { data: updatedHabit, error: habitError } = await supabase
         .from('habits')
@@ -208,9 +229,7 @@ export default function Index() {
           completed_dates: updatedCompletedDates,
           streak,
           total_days: updatedCompletedDates.length,
-          achieved_at: !isCompleted
-            ? new Date().toISOString()
-            : habit.achieved_at,
+          achieved_at: newAchievedAt,
         })
         .eq('id', habitId)
         .eq('user_id', session?.user?.id)
