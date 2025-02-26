@@ -313,36 +313,11 @@ export default function Social() {
       const newLiked = !likedHabits[habitId];
       const userId = user.id;
 
-      if (newLiked) {
-        const { error } = await supabase
-          .from('likes')
-          .insert({ user_id: userId, habit_id: habitId });
+      // 現在の状態を保存（エラー時の復元用）
+      const prevLikedState = { ...likedHabits };
+      const prevHabits = [...publicHabits];
 
-        if (error) {
-          console.error('Error inserting like:', error);
-          await Haptics.notificationAsync(
-            Haptics.NotificationFeedbackType.Error,
-          );
-          return;
-        }
-
-        await sendLikeNotification(habit, user);
-      } else {
-        const { error } = await supabase
-          .from('likes')
-          .delete()
-          .eq('user_id', userId)
-          .eq('habit_id', habitId);
-
-        if (error) {
-          console.error('Error deleting like:', error);
-          await Haptics.notificationAsync(
-            Haptics.NotificationFeedbackType.Error,
-          );
-          return;
-        }
-      }
-
+      // 楽観的UI更新（即座に表示を更新）
       const currentLikes = habit.likes ?? 0;
       const newLikeCount = newLiked
         ? currentLikes + 1
@@ -352,6 +327,36 @@ export default function Social() {
       setPublicHabits((prev) =>
         prev.map((h) => (h.id === habitId ? { ...h, likes: newLikeCount } : h)),
       );
+
+      try {
+        // バックグラウンドでデータベース更新
+        if (newLiked) {
+          const { error } = await supabase
+            .from('likes')
+            .insert({ user_id: userId, habit_id: habitId });
+
+          if (error) throw error;
+
+          // 通知は非同期で処理
+          sendLikeNotification(habit, user).catch((error) =>
+            console.error('Error sending notification:', error),
+          );
+        } else {
+          const { error } = await supabase
+            .from('likes')
+            .delete()
+            .eq('user_id', userId)
+            .eq('habit_id', habitId);
+
+          if (error) throw error;
+        }
+      } catch (error) {
+        // エラー発生時は元の状態に戻す
+        console.error('Error updating like:', error);
+        setLikedHabits(prevLikedState);
+        setPublicHabits(prevHabits);
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      }
     },
     [publicHabits, likedHabits],
   );
