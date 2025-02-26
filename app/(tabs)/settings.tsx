@@ -25,9 +25,44 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
 import { HStack } from '@/components/ui/hstack';
+import * as FileSystem from 'expo-file-system';
+import { decode } from 'base64-arraybuffer';
 
-export default function Settings() {
+// カスタムフック: 認証とセッション管理
+function useSession() {
   const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = () => {
+    Alert.alert(
+      '確認',
+      '本当にログアウトしますか？',
+      [
+        { text: 'キャンセル', style: 'cancel' },
+        { text: 'ログアウト', onPress: () => supabase.auth.signOut() },
+      ],
+      { cancelable: true },
+    );
+  };
+
+  return { session, handleLogout };
+}
+
+// カスタムフック: プロフィール管理
+function useProfile(session: Session | null) {
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
   const [originalUsername, setOriginalUsername] = useState('');
@@ -35,26 +70,12 @@ export default function Settings() {
   const [avatar, setAvatar] = useState('');
   const [uploading, setUploading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [followersCount, setFollowersCount] = useState<number>(0);
-  const [followingCount, setFollowingCount] = useState<number>(0);
   const [userIdentifier, setUserIdentifier] = useState('');
   const [originalUserIdentifier, setOriginalUserIdentifier] = useState('');
 
-  const router = useRouter();
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-  }, []);
-
+  // プロフィールデータの取得
   useEffect(() => {
     if (session?.user) {
-      // プロフィールデータの取得
       supabase
         .from('profiles')
         .select('*')
@@ -77,6 +98,45 @@ export default function Settings() {
         });
     }
   }, [session]);
+
+  const handleEditStart = () => {
+    setOriginalUsername(username);
+    setOriginalBio(bio);
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setUsername(originalUsername);
+    setBio(originalBio);
+    setIsEditing(false);
+  };
+
+  return {
+    username,
+    setUsername,
+    bio,
+    setBio,
+    avatar,
+    setAvatar,
+    uploading,
+    setUploading,
+    isEditing,
+    setIsEditing,
+    userIdentifier,
+    setUserIdentifier,
+    originalUserIdentifier,
+    setOriginalUsername,
+    setOriginalBio,
+    setOriginalUserIdentifier,
+    handleEditStart,
+    handleCancel,
+  };
+}
+
+// カスタムフック: フォロー情報管理
+function useFollowCounts(session: Session | null) {
+  const [followersCount, setFollowersCount] = useState<number>(0);
+  const [followingCount, setFollowingCount] = useState<number>(0);
 
   useEffect(() => {
     if (session && session.user) {
@@ -107,21 +167,296 @@ export default function Settings() {
     }
   }, [session]);
 
+  return { followersCount, followingCount };
+}
+
+// カスタムフック: アバター画像管理
+function useAvatarManagement(session: Session | null) {
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1], // 正方形のクロップを強制
       quality: 0.8,
+      base64: true,
     });
     if (!result.canceled) {
-      setAvatar(result.assets[0].uri);
+      return result.assets[0].uri;
+    }
+    return null;
+  };
+
+  const uploadAvatar = async (uri: string) => {
+    try {
+      // Get file extension
+      const fileExt = uri.split('.').pop()?.toLowerCase() || 'jpeg';
+      const fileName = `${session?.user.id}-${Date.now()}.${fileExt}`;
+
+      // Convert to base64 if not already
+      let base64Data;
+      if (uri.startsWith('data:')) {
+        base64Data = uri.split(',')[1];
+      } else {
+        const fileInfo = await FileSystem.getInfoAsync(uri);
+        if (!fileInfo.exists) {
+          throw new Error('File does not exist');
+        }
+
+        base64Data = await FileSystem.readAsStringAsync(uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+      }
+
+      // Upload to Supabase
+      const { error } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, decode(base64Data), {
+          contentType: `image/${fileExt}`,
+          upsert: true,
+          metadata: {
+            userId: session?.user.id,
+          },
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('avatars').getPublicUrl(fileName);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      Alert.alert('エラー', 'アバター画像のアップロードに失敗しました');
+      return null;
     }
   };
 
+  // 古いアバター画像を削除する関数
+  const deleteOldAvatar = async (avatarUrl: string) => {
+    try {
+      // URLからファイル名を抽出
+      const urlParts = avatarUrl.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+
+      if (!fileName) {
+        console.error('Could not extract filename from URL:', avatarUrl);
+        return;
+      }
+
+      console.log('Deleting old avatar file:', fileName);
+
+      // ファイルを削除
+      const { error } = await supabase.storage
+        .from('avatars')
+        .remove([fileName]);
+
+      if (error) {
+        console.error('Error deleting old avatar:', error);
+      } else {
+        console.log('Successfully deleted old avatar file');
+      }
+    } catch (error) {
+      console.error('Error in deleteOldAvatar:', error);
+    }
+  };
+
+  return { pickImage, uploadAvatar, deleteOldAvatar };
+}
+
+// プロフィール編集フォームコンポーネント
+function ProfileEditForm({
+  username,
+  setUsername,
+  bio,
+  setBio,
+  userIdentifier,
+  setUserIdentifier,
+  onSave,
+  onCancel,
+  uploading,
+}: {
+  username: string;
+  setUsername: (value: string) => void;
+  bio: string;
+  setBio: (value: string) => void;
+  userIdentifier: string;
+  setUserIdentifier: (value: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+  uploading: boolean;
+}) {
+  return (
+    <>
+      <VStack space="md" className="w-full">
+        <VStack space="xs">
+          <Text className="text-sm font-medium text-gray-600">ユーザー名</Text>
+          <Input
+            className="w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+            size="md"
+          >
+            <InputField
+              placeholder="ユーザー名を入力"
+              value={username}
+              onChangeText={setUsername}
+              maxLength={16}
+            />
+          </Input>
+        </VStack>
+
+        <VStack space="xs">
+          <Text className="text-sm font-medium text-gray-600">ユーザーID</Text>
+          <Input
+            className="w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+            size="md"
+          >
+            <InputField
+              placeholder="ユーザーID（英小文字、数字、_のみ）"
+              value={userIdentifier}
+              onChangeText={setUserIdentifier}
+              maxLength={20}
+            />
+          </Input>
+          <Text className="text-xs text-gray-500">
+            3〜20文字の半角英小文字、数字、アンダースコア(_)が使用可能
+          </Text>
+        </VStack>
+
+        <VStack space="xs">
+          <Text className="text-sm font-medium text-gray-600">自己紹介</Text>
+          <Input
+            className="w-full border border-gray-200 rounded-lg mb-1 py-2 min-h-[80px] focus:outline-none focus:ring-1 focus:ring-blue-500"
+            size="md"
+          >
+            <InputField
+              placeholder="自己紹介を入力（最大200文字）"
+              value={bio}
+              onChangeText={setBio}
+              multiline
+              textAlignVertical="top"
+              maxLength={200}
+              numberOfLines={3}
+            />
+          </Input>
+          <Text className="text-xs text-gray-500 text-right">
+            {bio.length}/200文字
+          </Text>
+        </VStack>
+      </VStack>
+
+      <VStack space="sm" className="w-full mt-4">
+        {uploading ? (
+          <Box className="items-center py-4">
+            <ActivityIndicator size="small" color="#3b82f6" />
+            <Text className="text-gray-600 mt-2 text-sm">保存中...</Text>
+          </Box>
+        ) : (
+          <>
+            <Button
+              variant="solid"
+              onPress={onSave}
+              className="w-full"
+              style={{ backgroundColor: '#3b82f6' }}
+            >
+              <ButtonText className="text-white font-medium">
+                保存する
+              </ButtonText>
+            </Button>
+
+            <Button
+              variant="outline"
+              onPress={onCancel}
+              className="w-full border-gray-300 mt-2"
+            >
+              <ButtonText className="text-gray-600">キャンセル</ButtonText>
+            </Button>
+          </>
+        )}
+      </VStack>
+    </>
+  );
+}
+
+// プロフィール表示コンポーネント
+function ProfileDisplay({
+  session,
+  onEditStart,
+  onLogout,
+}: {
+  session: Session | null;
+  onEditStart: () => void;
+  onLogout: () => void;
+}) {
+  return (
+    <>
+      <VStack space="md" className="w-full">
+        <Box className="bg-white border border-gray-100 rounded-xl p-4">
+          <Text className="text-sm text-gray-500 mb-1">メールアドレス</Text>
+          <Text className="text-base">{session?.user.email}</Text>
+        </Box>
+      </VStack>
+
+      <VStack space="sm" className="w-full mt-4">
+        <Button
+          variant="outline"
+          onPress={onLogout}
+          className="w-full border-red-500 mt-4"
+        >
+          <ButtonIcon as={LogOut} className="text-red-500 mr-1" />
+          <ButtonText className="text-red-500">ログアウト</ButtonText>
+        </Button>
+      </VStack>
+    </>
+  );
+}
+
+// メインコンポーネント
+export default function Settings() {
+  const router = useRouter();
+  const { session, handleLogout } = useSession();
+  const { followersCount, followingCount } = useFollowCounts(session);
+  const {
+    username,
+    setUsername,
+    bio,
+    setBio,
+    avatar,
+    setAvatar,
+    uploading,
+    setUploading,
+    isEditing,
+    setIsEditing,
+    userIdentifier,
+    setUserIdentifier,
+    originalUserIdentifier,
+    setOriginalUsername,
+    setOriginalBio,
+    setOriginalUserIdentifier,
+    handleEditStart,
+    handleCancel,
+  } = useProfile(session);
+  const {
+    pickImage: pickImageUtil,
+    uploadAvatar,
+    deleteOldAvatar,
+  } = useAvatarManagement(session);
+
+  // 画像選択ハンドラー
+  const pickImage = async () => {
+    const uri = await pickImageUtil();
+    if (uri) {
+      setAvatar(uri);
+    }
+  };
+
+  // プロフィール保存ハンドラー
   const handleSave = async () => {
     if (!session) return;
 
+    // バリデーションチェック
     if (userIdentifier) {
       const trimmedId = userIdentifier.trim().toLowerCase();
 
@@ -134,7 +469,8 @@ export default function Settings() {
         return;
       }
 
-      if (userIdentifier !== originalUserIdentifier) {
+      // ユーザーIDが変更された場合のみ重複チェックを実行
+      if (trimmedId !== originalUserIdentifier) {
         const { data: existingUser } = await supabase
           .from('profiles')
           .select('id')
@@ -150,53 +486,69 @@ export default function Settings() {
 
     setUploading(true);
 
-    const { error } = await supabase
-      .from('profiles')
-      .upsert({
-        id: session.user.id,
-        username,
-        bio,
-        avatar_url: avatar,
-        user_identifier: userIdentifier.trim().toLowerCase(),
-        updated_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
+    try {
+      // アバター画像の処理
+      let avatarUrl = avatar;
+      // 現在のアバターURLを保存（データベースに保存されている元のURL）
+      let oldAvatarUrl = null;
 
-    if (error) {
-      console.error('Profile update error:', error);
-    } else {
+      // プロフィール情報を取得して現在のアバターURLを確認
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profileData?.avatar_url) {
+        oldAvatarUrl = profileData.avatar_url;
+      }
+
+      const isNewAvatar = avatar && !avatar.startsWith('http');
+
+      if (isNewAvatar) {
+        const uploadedUrl = await uploadAvatar(avatar);
+        if (uploadedUrl) {
+          // 新しいアバターのURLを設定
+          avatarUrl = uploadedUrl;
+
+          // 古いアバター画像があれば削除
+          if (oldAvatarUrl && oldAvatarUrl !== uploadedUrl) {
+            console.log('Attempting to delete old avatar:', oldAvatarUrl);
+            await deleteOldAvatar(oldAvatarUrl);
+          }
+        }
+      }
+
+      // プロフィール情報の更新
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: session.user.id,
+          username,
+          bio,
+          avatar_url: avatarUrl,
+          user_identifier: userIdentifier.trim().toLowerCase(),
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
       // 保存成功後に元の値を更新
       setOriginalUsername(username);
       setOriginalBio(bio);
       setOriginalUserIdentifier(userIdentifier.trim().toLowerCase());
+      setAvatar(avatarUrl);
+    } catch (error) {
+      console.error('Profile update error:', error);
+      Alert.alert('エラー', 'プロフィールの更新に失敗しました');
+    } finally {
+      setUploading(false);
+      setIsEditing(false);
     }
-
-    setUploading(false);
-  };
-
-  const handleEditStart = () => {
-    setOriginalUsername(username);
-    setOriginalBio(bio);
-    setIsEditing(true);
-  };
-
-  const handleCancel = () => {
-    setUsername(originalUsername);
-    setBio(originalBio);
-    setIsEditing(false);
-  };
-
-  const handleLogout = () => {
-    Alert.alert(
-      '確認',
-      '本当にログアウトしますか？',
-      [
-        { text: 'キャンセル', style: 'cancel' },
-        { text: 'ログアウト', onPress: () => supabase.auth.signOut() },
-      ],
-      { cancelable: true },
-    );
   };
 
   return (
@@ -243,7 +595,13 @@ export default function Settings() {
                   <AvatarFallbackText>
                     {username?.[0]?.toUpperCase() || '?'}
                   </AvatarFallbackText>
-                  {avatar && <AvatarImage source={{ uri: avatar }} />}
+                  {avatar && (
+                    <AvatarImage
+                      source={{ uri: avatar }}
+                      alt={username || 'ユーザー'}
+                      style={{ width: '100%', height: '100%' }}
+                    />
+                  )}
                 </Avatar>
                 {isEditing && (
                   <Box className="absolute right-0 bottom-0 bg-blue-500 rounded-full p-1.5">
@@ -290,125 +648,24 @@ export default function Settings() {
             )}
 
             {isEditing ? (
-              <VStack space="md" className="w-full">
-                <VStack space="xs">
-                  <Text className="text-sm font-medium text-gray-600">
-                    ユーザー名
-                  </Text>
-                  <Input
-                    className="w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    size="md"
-                  >
-                    <InputField
-                      placeholder="ユーザー名を入力"
-                      value={username}
-                      onChangeText={setUsername}
-                      maxLength={16}
-                    />
-                  </Input>
-                </VStack>
-
-                <VStack space="xs">
-                  <Text className="text-sm font-medium text-gray-600">
-                    ユーザーID
-                  </Text>
-                  <Input
-                    className="w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    size="md"
-                  >
-                    <InputField
-                      placeholder="ユーザーID（英小文字、数字、_のみ）"
-                      value={userIdentifier}
-                      onChangeText={setUserIdentifier}
-                      maxLength={20}
-                    />
-                  </Input>
-                  <Text className="text-xs text-gray-500">
-                    3〜20文字の半角英小文字、数字、アンダースコア(_)が使用可能
-                  </Text>
-                </VStack>
-
-                <VStack space="xs">
-                  <Text className="text-sm font-medium text-gray-600">
-                    自己紹介
-                  </Text>
-                  <Input
-                    className="w-full border border-gray-200 rounded-lg mb-1 py-2 min-h-[80px] focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    size="md"
-                  >
-                    <InputField
-                      placeholder="自己紹介を入力（最大200文字）"
-                      value={bio}
-                      onChangeText={setBio}
-                      multiline
-                      textAlignVertical="top"
-                      maxLength={200}
-                      numberOfLines={3}
-                    />
-                  </Input>
-                  <Text className="text-xs text-gray-500 text-right">
-                    {bio.length}/200文字
-                  </Text>
-                </VStack>
-              </VStack>
+              <ProfileEditForm
+                username={username}
+                setUsername={setUsername}
+                bio={bio}
+                setBio={setBio}
+                userIdentifier={userIdentifier}
+                setUserIdentifier={setUserIdentifier}
+                onSave={handleSave}
+                onCancel={handleCancel}
+                uploading={uploading}
+              />
             ) : (
-              <VStack space="md" className="w-full">
-                <Box className="bg-white border border-gray-100 rounded-xl p-4">
-                  <Text className="text-sm text-gray-500 mb-1">
-                    メールアドレス
-                  </Text>
-                  <Text className="text-base">{session?.user.email}</Text>
-                </Box>
-              </VStack>
+              <ProfileDisplay
+                session={session}
+                onEditStart={handleEditStart}
+                onLogout={handleLogout}
+              />
             )}
-
-            <VStack space="sm" className="w-full mt-4">
-              {isEditing ? (
-                uploading ? (
-                  <Box className="items-center py-4">
-                    <ActivityIndicator size="small" color="#3b82f6" />
-                    <Text className="text-gray-600 mt-2 text-sm">
-                      保存中...
-                    </Text>
-                  </Box>
-                ) : (
-                  <>
-                    <Button
-                      variant="solid"
-                      onPress={() => {
-                        handleSave();
-                        setIsEditing(false);
-                      }}
-                      className="w-full"
-                      style={{ backgroundColor: '#3b82f6' }}
-                    >
-                      <ButtonText className="text-white font-medium">
-                        保存する
-                      </ButtonText>
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      onPress={handleCancel}
-                      className="w-full border-gray-300 mt-2"
-                    >
-                      <ButtonText className="text-gray-600">
-                        キャンセル
-                      </ButtonText>
-                    </Button>
-                  </>
-                )
-              ) : (
-                <Button
-                  variant="outline"
-                  onPress={handleLogout}
-                  className="w-full border-red-500 mt-4"
-                >
-                  <ButtonIcon as={LogOut} className="text-red-500 mr-1" />
-                  <ButtonText className="text-red-500">ログアウト</ButtonText>
-                </Button>
-              )}
-            </VStack>
           </VStack>
         </ScrollView>
       </KeyboardAvoidingView>
