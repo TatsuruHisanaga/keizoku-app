@@ -4,7 +4,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@/components/ui/icon';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { MonthView } from './MonthView';
-import { formatDate, getGoalDateStr } from '@/utils/dateHelpers';
+import { getGoalDateStr } from '@/utils/dateHelpers';
 
 interface WeekViewProps {
   habits: {
@@ -63,7 +63,7 @@ export function WeekView({
         ...habit,
         completionRate: getCompletionRate(habit.completedDates),
       })),
-    [habits, weekDates],
+    [habits],
   );
   const formatWeekRange = () => {
     const weekDates = getWeekDates();
