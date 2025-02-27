@@ -77,11 +77,6 @@ export function WeekView({
     }${end.getDate()}日`;
   };
 
-  const isAchieved = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
-    return achievedDates.includes(dateStr);
-  };
-
   const renderWeekView = () => {
     return (
       <Box>
