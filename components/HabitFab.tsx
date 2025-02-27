@@ -1,19 +1,17 @@
 import { useState, useRef } from 'react';
-import { Fab, FabIcon, FabLabel } from '@/components/ui/fab';
+import { Fab, FabIcon } from '@/components/ui/fab';
 import { AddIcon } from '@/components/ui/icon';
 import { Input, InputField } from '@/components/ui/input';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
-import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
+import { Button, ButtonText } from '@/components/ui/button';
 import {
   Modal,
   ModalBackdrop,
   ModalContent,
-  ModalHeader,
   ModalBody,
   ModalFooter,
 } from '@/components/ui/modal';
-import { Heading } from '@/components/ui/heading';
 import { VStack } from '@/components/ui/vstack';
 import * as Haptics from 'expo-haptics';
 
