@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Box } from '@/components/ui/box';
@@ -32,7 +32,7 @@ export default function FollowingScreen() {
   const [following, setFollowing] = useState<Following[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchFollowing = async () => {
+  const fetchFollowing = useCallback(async () => {
     if (!user) return;
     try {
       const { data: followingData, error: followingError } = await supabase
@@ -88,11 +88,11 @@ export default function FollowingScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, user]);
 
   useEffect(() => {
     fetchFollowing();
-  }, [id, user]);
+  }, [fetchFollowing]);
 
   const handleFollowToggle = async (followingId: string) => {
     if (!user) return;

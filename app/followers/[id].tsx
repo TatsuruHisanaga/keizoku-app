@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Box } from '@/components/ui/box';
@@ -15,12 +15,15 @@ import { HStack } from '@/components/ui/hstack';
 import { TouchableOpacity } from 'react-native';
 import { useAuth } from '@/hooks/useAuth';
 
+interface ProfileData {
+  id: string;
+  username: string;
+  avatar_url: string;
+}
+
 interface Follower {
-  profiles: {
-    id: string;
-    username: string;
-    avatar_url: string;
-  };
+  follower_id: string;
+  profile: ProfileData; // データ処理後の単一のプロファイル
   is_following?: boolean;
 }
 
@@ -32,7 +35,7 @@ export default function FollowersScreen() {
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchFollowers = async () => {
+  const fetchFollowers = useCallback(async () => {
     if (!user) return;
     try {
       // フォロワーを取得
@@ -68,10 +71,18 @@ export default function FollowersScreen() {
 
       // フォロー状態を組み合わせる
       const followingSet = new Set(followingData.map((f) => f.followed_id));
-      const processedFollowers = followersData.map((follower) => ({
-        ...follower,
-        is_following: followingSet.has(follower.profiles.id),
-      }));
+      const processedFollowers = followersData.map((follower) => {
+        // profiles が配列なら最初の要素を取得
+        const profileData = Array.isArray(follower.profiles)
+          ? follower.profiles[0]
+          : follower.profiles;
+
+        return {
+          follower_id: follower.follower_id,
+          profile: profileData, // 単一のオブジェクトとして保存
+          is_following: followingSet.has(follower.follower_id),
+        };
+      });
 
       setFollowers(processedFollowers);
     } catch (error) {
@@ -79,16 +90,16 @@ export default function FollowersScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, user]);
 
   useEffect(() => {
     fetchFollowers();
-  }, [id, user]);
+  }, [fetchFollowers]);
 
   const handleFollowToggle = async (followerId: string) => {
     if (!user) return;
     try {
-      const follower = followers.find((f) => f.profiles.id === followerId);
+      const follower = followers.find((f) => f.follower_id === followerId);
       if (!follower) return;
 
       if (follower.is_following) {
@@ -113,7 +124,7 @@ export default function FollowersScreen() {
       // 状態を更新
       setFollowers((prev) =>
         prev.map((f) =>
-          f.profiles.id === followerId
+          f.follower_id === followerId
             ? { ...f, is_following: !f.is_following }
             : f,
         ),
@@ -136,33 +147,33 @@ export default function FollowersScreen() {
         <VStack space="sm" className="p-4">
           {followers.map((follower) => (
             <HStack
-              key={follower.profiles.id}
+              key={follower.follower_id}
               className="items-center justify-between p-2"
             >
               <TouchableOpacity
-                onPress={() => router.push(`/profile/${follower.profiles.id}`)}
+                onPress={() => router.push(`/profile/${follower.follower_id}`)}
                 className="flex-1"
               >
                 <HStack space="sm" className="items-center">
                   <Avatar size="md">
                     <AvatarFallbackText>
-                      {follower.profiles.username?.[0]?.toUpperCase() || '?'}
+                      {follower.profile.username?.[0]?.toUpperCase() || '?'}
                     </AvatarFallbackText>
-                    {follower.profiles.avatar_url && (
+                    {follower.profile.avatar_url && (
                       <AvatarImage
-                        source={{ uri: follower.profiles.avatar_url }}
+                        source={{ uri: follower.profile.avatar_url }}
                       />
                     )}
                   </Avatar>
-                  <Text className="flex-1">{follower.profiles.username}</Text>
+                  <Text className="flex-1">{follower.profile.username}</Text>
                 </HStack>
               </TouchableOpacity>
 
-              {user && user.id !== follower.profiles.id && (
+              {user && user.id !== follower.follower_id && (
                 <Button
                   variant={follower.is_following ? 'outline' : 'solid'}
                   size="sm"
-                  onPress={() => handleFollowToggle(follower.profiles.id)}
+                  onPress={() => handleFollowToggle(follower.follower_id)}
                   className={follower.is_following ? 'border-gray-300' : ''}
                 >
                   <ButtonText
