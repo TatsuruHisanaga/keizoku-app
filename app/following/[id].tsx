@@ -27,7 +27,8 @@ interface Following {
 export default function FollowingScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { session } = useAuth();
+  const user = session?.user;
   const [following, setFollowing] = useState<Following[]>([]);
   const [loading, setLoading] = useState(true);
 

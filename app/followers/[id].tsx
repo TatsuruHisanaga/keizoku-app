@@ -27,7 +27,8 @@ interface Follower {
 export default function FollowersScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { session } = useAuth();
+  const user = session?.user;
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [loading, setLoading] = useState(true);
 
