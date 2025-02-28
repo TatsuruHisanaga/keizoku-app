@@ -22,11 +22,10 @@ import { VStack } from '@/components/ui/vstack';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { LogOut, SquarePen } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
-import { TouchableOpacity } from 'react-native';
 import { HStack } from '@/components/ui/hstack';
 import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
+import { ProfileInfo } from '@/components/ProfileInfo';
 
 // カスタムフック: 認証とセッション管理
 function useSession() {
@@ -415,7 +414,6 @@ function ProfileDisplay({
 
 // メインコンポーネント
 export default function Settings() {
-  const router = useRouter();
   const { session, handleLogout } = useSession();
   const { followersCount, followingCount } = useFollowCounts(session);
   const {
@@ -610,37 +608,14 @@ export default function Settings() {
                 )}
               </Pressable>
 
-              <VStack className="flex-1 mx-3 ml-4">
-                <Text className="text-lg font-bold">
-                  {username || '未設定'}
-                </Text>
-                <Text className="text-sm text-gray-500">
-                  {userIdentifier ? `@${userIdentifier}` : ''}
-                </Text>
-              </VStack>
-
-              <HStack space="md" className="mr-8">
-                <TouchableOpacity
-                  onPress={() =>
-                    session && router.push(`/followers/${session.user.id}`)
-                  }
-                >
-                  <Box className="items-center">
-                    <Text className="font-bold">{followersCount}</Text>
-                    <Text className="text-gray-600">フォロワー</Text>
-                  </Box>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() =>
-                    session && router.push(`/following/${session.user.id}`)
-                  }
-                >
-                  <Box className="items-center">
-                    <Text className="font-bold">{followingCount}</Text>
-                    <Text className="text-gray-600">フォロー中</Text>
-                  </Box>
-                </TouchableOpacity>
-              </HStack>
+              <ProfileInfo
+                username={username}
+                userIdentifier={userIdentifier}
+                followersCount={followersCount}
+                followingCount={followingCount}
+                session={session}
+                profileId={session?.user.id || ''}
+              />
             </HStack>
 
             {!isEditing && bio && (

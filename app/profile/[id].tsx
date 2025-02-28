@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { ScrollView, TouchableOpacity, Pressable } from 'react-native';
-import { useRouter, useLocalSearchParams, Link } from 'expo-router';
+import { useEffect, useState, useCallback } from 'react';
+import { ScrollView, Pressable } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
 import {
@@ -12,12 +12,14 @@ import { Button, ButtonText } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { HStack } from '@/components/ui/hstack';
+import { ProfileInfo } from '@/components/ProfileInfo';
 
 interface Profile {
   id: string;
   username: string;
   bio: string;
   avatar_url: string;
+  user_identifier?: string;
   followers_count?: number;
   following_count?: number;
 }
@@ -31,8 +33,7 @@ interface Habit {
 
 export default function ProfileScreen() {
   const { id } = useLocalSearchParams();
-  const router = useRouter();
-  const { user } = useAuth();
+  const { session } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -40,7 +41,7 @@ export default function ProfileScreen() {
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -55,9 +56,9 @@ export default function ProfileScreen() {
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
-  };
+  }, [id]);
 
-  const fetchHabits = async () => {
+  const fetchHabits = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('habits')
@@ -72,16 +73,16 @@ export default function ProfileScreen() {
     } catch (error) {
       console.error('Error fetching habits:', error);
     }
-  };
+  }, [id]);
 
-  const fetchFollowStatus = async () => {
-    if (!user) return;
-    if (user.id === id) return;
+  const fetchFollowStatus = useCallback(async () => {
+    if (!session?.user) return;
+    if (session.user.id === id) return;
     try {
       const { data, error } = await supabase
         .from('follows')
         .select('*')
-        .eq('follower_id', user.id)
+        .eq('follower_id', session.user.id)
         .eq('followed_id', id)
         .maybeSingle();
       if (error) {
@@ -92,9 +93,9 @@ export default function ProfileScreen() {
     } catch (error) {
       console.error('Error fetching follow status:', error);
     }
-  };
+  }, [id, session]);
 
-  const fetchFollowCounts = async () => {
+  const fetchFollowCounts = useCallback(async () => {
     try {
       const { count: followersCount, error: followersError } = await supabase
         .from('follows')
@@ -113,7 +114,7 @@ export default function ProfileScreen() {
     } catch (error) {
       console.error('Error fetching follow counts:', error);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     fetchProfile();
@@ -121,16 +122,23 @@ export default function ProfileScreen() {
     fetchFollowStatus();
     fetchFollowCounts();
     setLoading(false);
-  }, [id, user]);
+  }, [
+    id,
+    session,
+    fetchProfile,
+    fetchHabits,
+    fetchFollowStatus,
+    fetchFollowCounts,
+  ]);
 
   const handleFollowToggle = async () => {
-    if (!user) return;
+    if (!session?.user) return;
     try {
       if (isFollowing) {
         const { error } = await supabase
           .from('follows')
           .delete()
-          .eq('follower_id', user.id)
+          .eq('follower_id', session.user.id)
           .eq('followed_id', id);
         if (error) {
           console.error('Error unfollowing:', error);
@@ -139,7 +147,7 @@ export default function ProfileScreen() {
         }
       } else {
         const { error } = await supabase.from('follows').insert({
-          follower_id: user.id,
+          follower_id: session.user.id,
           followed_id: id,
         });
         if (error) {
@@ -178,27 +186,16 @@ export default function ProfileScreen() {
               </Avatar>
             </Pressable>
 
-            <HStack space="md">
-              <Link href={`/followers/${id}`} asChild>
-                <TouchableOpacity>
-                  <Box className="items-center">
-                    <Text className="font-bold">{followersCount}</Text>
-                    <Text className="text-gray-600">フォロワー</Text>
-                  </Box>
-                </TouchableOpacity>
-              </Link>
+            <ProfileInfo
+              username={profile.username}
+              userIdentifier={profile.user_identifier || ''}
+              followersCount={followersCount}
+              followingCount={followingCount}
+              session={session}
+              profileId={id as string}
+            />
 
-              <Link href={`/following/${id}`} asChild>
-                <TouchableOpacity>
-                  <Box className="items-center">
-                    <Text className="font-bold">{followingCount}</Text>
-                    <Text className="text-gray-600">フォロー中</Text>
-                  </Box>
-                </TouchableOpacity>
-              </Link>
-            </HStack>
-
-            {user && user.id !== id && (
+            {session?.user && session.user.id !== id && (
               <Button
                 onPress={handleFollowToggle}
                 variant="solid"
@@ -212,7 +209,6 @@ export default function ProfileScreen() {
           </HStack>
 
           <Box className="items-start">
-            <Text className="text-xl font-bold">{profile.username}</Text>
             <Text className="mt-1">
               {profile.bio || '自己紹介がありません'}
             </Text>
