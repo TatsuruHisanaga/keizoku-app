@@ -6,6 +6,7 @@ import {
   getCurrentConsecutiveDays,
 } from '@/utils/habitUtils';
 import { playClickSound, haptics } from '@/utils/soundUtils';
+import { updateReminderAfterHabitToggle } from '@/utils/reminder';
 
 export type Habit = {
   id: string;
@@ -205,6 +206,12 @@ export function useHabits(session: Session | null) {
           return h;
         }),
       );
+
+      // If this is today's habit, update the reminder settings
+      if (date === today) {
+        // Use the utility to check and update reminder settings
+        await updateReminderAfterHabitToggle();
+      }
     } catch (error: any) {
       console.error('Error toggling habit:', error.message || error);
       // On error, trigger error haptic feedback.
