@@ -4,7 +4,11 @@ import { Platform, FlatList, RefreshControl } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
-import { scheduleReminder, setupDailyHabitReminder } from '@/utils/reminder';
+import {
+  scheduleReminder,
+  setupDailyHabitReminder,
+  scheduleTestNotificationIn5Minutes,
+} from '@/utils/reminder';
 import { supabase } from '@/lib/supabase';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
@@ -233,14 +237,25 @@ export default function NotificationsScreen() {
                 </ButtonText>
               </Button>
               <Button
-                className="bg-blue-500 h-12 mt-2"
+                className="bg-green-500 h-12 mt-2"
                 onPress={async () => {
-                  await setupDailyHabitReminder();
-                  alert('20:00の習慣リマインダーを設定しました');
+                  await scheduleTestNotificationIn5Minutes();
+                  alert('5分後にテスト通知を送信します');
                 }}
               >
                 <ButtonText className="text-white font-bold">
-                  20:00のリマインダーを設定
+                  5分後にテスト通知
+                </ButtonText>
+              </Button>
+              <Button
+                className="bg-blue-500 h-12 mt-2"
+                onPress={async () => {
+                  await setupDailyHabitReminder();
+                  alert('19:00の習慣リマインダーを設定しました');
+                }}
+              >
+                <ButtonText className="text-white font-bold">
+                  19:00のリマインダーを設定
                 </ButtonText>
               </Button>
               <Button
@@ -272,14 +287,25 @@ export default function NotificationsScreen() {
               </ButtonText>
             </Button>
             <Button
-              className="bg-blue-500 h-12 w-full mt-2"
+              className="bg-green-500 h-12 w-full mt-2"
               onPress={async () => {
-                await setupDailyHabitReminder();
-                alert('20:00の習慣リマインダーを設定しました');
+                await scheduleTestNotificationIn5Minutes();
+                alert('5分後にテスト通知を送信します');
               }}
             >
               <ButtonText className="text-white font-bold">
-                20:00のリマインダーを設定
+                5分後にテスト通知
+              </ButtonText>
+            </Button>
+            <Button
+              className="bg-blue-500 h-12 w-full mt-2"
+              onPress={async () => {
+                await setupDailyHabitReminder();
+                alert('19:00の習慣リマインダーを設定しました');
+              }}
+            >
+              <ButtonText className="text-white font-bold">
+                19:00のリマインダーを設定
               </ButtonText>
             </Button>
           </VStack>

@@ -22,32 +22,46 @@ export async function scheduleReminder(triggerDate: Date) {
   });
 }
 
-// 未完了の習慣がある場合に20:00に通知を送る
+// 未完了の習慣がある場合に19:00に通知を送る
 export async function scheduleHabitReminderAt8PM() {
   const userId = (await supabase.auth.getUser()).data.user?.id;
   if (!userId) return;
 
-  // Cancel any existing 8PM reminders first
+  // Cancel any existing reminders first
   await cancelHabitReminder();
 
   // Calculate today's date in the local timezone (YYYY-MM-DD format)
   const today = new Date().toISOString().split('T')[0];
 
-  // Set the notification time to 8:00 PM today
-  const reminderTime = new Date();
-  reminderTime.setHours(20, 0, 0, 0); // 20:00:00
+  // 日本時間の19:00を正確に設定する
+  // 現在時刻（日本時間）を取得
+  const now = new Date();
 
-  // If it's already past 8PM, don't schedule for today
-  if (new Date() > reminderTime) {
+  // 今日の19:00（JST）を設定
+  const reminderTime = new Date();
+  reminderTime.setHours(19, 0, 0, 0);
+
+  // デバッグログ
+  console.log(`現在時刻: ${now.toLocaleString('ja-JP')}`);
+  console.log(`設定した通知時刻: ${reminderTime.toLocaleString('ja-JP')}`);
+
+  // 既に19:00を過ぎているかチェック
+  if (now > reminderTime) {
+    console.log('既に19:00を過ぎているため、通知はスケジュールされません');
     return;
   }
 
-  // 20:00までの秒数を計算
-  const seconds = Math.floor((reminderTime.getTime() - Date.now()) / 1000);
-  if (seconds <= 0) return; // 既に20:00を過ぎている場合は設定しない
+  // 19:00までの秒数を計算
+  const seconds = Math.floor((reminderTime.getTime() - now.getTime()) / 1000);
+  console.log(`通知までの秒数: ${seconds}秒`);
 
-  // Schedule the notification for 8:00 PM
-  await Notifications.scheduleNotificationAsync({
+  if (seconds <= 0) {
+    console.log('計算された秒数が0以下のため、通知はスケジュールされません');
+    return;
+  }
+
+  // Schedule the notification for 7:00 PM
+  const notificationId = await Notifications.scheduleNotificationAsync({
     content: {
       title: 'Keizoku',
       body: '記録の時間です',
@@ -61,6 +75,13 @@ export async function scheduleHabitReminderAt8PM() {
     // @ts-ignore - 型エラーがあるが、実行時には問題なく動作する
     trigger: { seconds },
   });
+
+  console.log(`通知がスケジュールされました。ID: ${notificationId}`);
+
+  // 確認のため、スケジュールされた通知の一覧を表示
+  const scheduledNotifications =
+    await Notifications.getAllScheduledNotificationsAsync();
+  console.log(`スケジュール済み通知数: ${scheduledNotifications.length}`);
 }
 
 // 通知をキャンセルする
@@ -75,6 +96,34 @@ export async function cancelHabitReminder() {
       );
     }
   }
+}
+
+// 5分後にテスト通知を送信する（デバッグ用）
+export async function scheduleTestNotificationIn5Minutes() {
+  const userId = (await supabase.auth.getUser()).data.user?.id;
+  if (!userId) return;
+
+  // 5分後の時間を計算
+  const testTime = new Date(Date.now() + 5 * 60 * 1000);
+
+  console.log(`テスト通知時刻: ${testTime.toLocaleString('ja-JP')}`);
+
+  const notificationId = await Notifications.scheduleNotificationAsync({
+    content: {
+      title: 'Keizoku - テスト',
+      body: 'これはテスト通知です。現在時刻から5分後に送信されます。',
+      data: {
+        type: 'test_notification',
+        recipientId: userId,
+      },
+      sound: 'default',
+    },
+    // @ts-ignore - 型エラーがあるが、実行時には問題なく動作する
+    trigger: { seconds: 5 * 60 },
+  });
+
+  console.log(`テスト通知がスケジュールされました。ID: ${notificationId}`);
+  return notificationId;
 }
 
 // 今日の未完了習慣の数を取得する
@@ -133,13 +182,13 @@ export async function updateReminderAfterHabitToggle() {
 
   // 時間をチェック
   const now = new Date();
-  const isPast8PM = now.getHours() >= 20;
+  const isPast7PM = now.getHours() >= 19; // テスト用に19時に変更
 
   if (uncompletedCount === 0) {
     // すべての習慣が完了した場合は通知をキャンセル
     await cancelHabitReminder();
-  } else if (!isPast8PM) {
-    // まだ20:00前で、未完了の習慣がある場合は通知をスケジュール
+  } else if (!isPast7PM) {
+    // まだ19:00前で、未完了の習慣がある場合は通知をスケジュール
     await scheduleHabitReminderAt8PM();
   }
 }
